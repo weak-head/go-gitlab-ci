@@ -9,8 +9,13 @@ push: build
 
 .PHONY: install
 install:
-	helm install --namespace=default gogin deploy/gogin
+	helm install \
+		--namespace=services \
+		--create-namespace \
+		gogin deploy/gogin
 
 .PHONY: uninstall
 uninstall:
-	helm uninstall --namespace=default gogin
+	helm uninstall \
+		--namespace=services \
+		gogin
