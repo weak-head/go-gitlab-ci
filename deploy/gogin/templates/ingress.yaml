@@ -29,7 +29,6 @@ spec:
   selector:
     name: gogin-ingress
   type: LoadBalancer
-  loadBalancerIP: 172.16.10.100
   ports:
     - name: http
       protocol: TCP
