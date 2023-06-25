@@ -16,67 +16,12 @@ spec:
       labels:
         {{- include "gogin.selectorLabels" . | nindent 8 }}
     spec:
+      imagePullSecrets:
+      - name: {{ include .Values.registry.secret }}
       containers:
       - name: {{ include "gogin.fullname" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        env:
-        - name: LOG_LEVEL
-          value: {{.Values.config.log.level | quote}}
-        - name: LOG_FORMATTER
-          value: {{.Values.config.log.formatter | quote}}
-        - name: STATUS_RPC_ADDR
-          value: {{.Values.config.status.rpc.addr | quote}}
-        - name: AGENT_PIPELINE_COUNT
-          value: {{.Values.config.agent.pipeline.count | quote}}
-        - name: PIPELINE_SOURCE_TOPIC_NAME
-          value: {{.Values.config.pipeline.source.topic.name | quote}}
-        - name: PIPELINE_SOURCE_TOPIC_CREATE
-          value: {{.Values.config.pipeline.source.topic.create | quote}}
-        - name: PIPELINE_SOURCE_TOPIC_PARTITIONS
-          value: {{.Values.config.pipeline.source.topic.partitions | quote}}
-        - name: PIPELINE_SOURCE_TOPIC_REPLICATION
-          value: {{.Values.config.pipeline.source.topic.replication | quote}}
-        - name: PIPELINE_DESTINATION_TOPIC_NAME
-          value: {{.Values.config.pipeline.destination.topic.name | quote}}
-        - name: PIPELINE_DESTINATION_TOPIC_CREATE
-          value: {{.Values.config.pipeline.destination.topic.create | quote}}
-        - name: PIPELINE_DESTINATION_TOPIC_PARTITIONS
-          value: {{.Values.config.pipeline.destination.topic.partitions | quote}}
-        - name: PIPELINE_DESTINATION_TOPIC_REPLICATION
-          value: {{.Values.config.pipeline.destination.topic.replication | quote}}
-        - name: PIPELINE_DESTINATION_BUCKET_NAME
-          value: {{.Values.config.pipeline.destination.bucket.name | quote}}
-        - name: PIPELINE_DESTINATION_BUCKET_CREATE
-          value: {{.Values.config.pipeline.destination.bucket.create | quote}}
-        - name: PIPELINE_DESTINATION_BUCKET_REGION
-          value: {{.Values.config.pipeline.destination.bucket.region | quote}}
-        - name: MINIO_ENDPOINT
-          value: {{.Values.config.minio.endpoint | quote}}
-        - name: MINIO_USE_SSL
-          value: {{.Values.config.minio.useSSL | quote}}
-        - name: MINIO_ACCESS_KEY
-          value: {{.Values.config.minio.accessKey | quote}}
-        - name: MINIO_SECRET_KEY
-          value: {{.Values.config.minio.secretKey | quote}}
-        - name: KAFKA_READER_BROKERS
-          value: {{.Values.config.kafka.reader.brokers | quote}}
-        - name: KAFKA_READER_GROUP
-          value: {{.Values.config.kafka.reader.group | quote}}
-        - name: KAFKA_WRITER_ADDR
-          value: {{.Values.config.kafka.writer.addr | quote}}
-        - name: KAFKA_WRITER_BALANCER
-          value: {{.Values.config.kafka.writer.balancer | quote}}
-        - name: AWS_ACCESS_KEY_ID
-          value: {{.Values.aws.accessKey | quote}}
-        - name: AWS_SECRET_ACCESS_KEY
-          value: {{.Values.aws.secretKey | quote}}
-        - name: AWS_DEFAULT_REGION
-          value: {{.Values.aws.defaultRegion | quote}}
-        - name: METRICS_PROMETHEUS_ADDR
-          value: {{.Values.config.metrics.prometheus.addr | quote}}
-        - name: METRICS_PROMETHEUS_PATH
-          value: {{.Values.config.metrics.prometheus.path | quote}}
         ports:
           - name: http
             containerPort: 8080

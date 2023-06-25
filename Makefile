@@ -1,11 +1,15 @@
+# Docker Image
+IMAGE_ID ?= gogin:local
 
-.PHONY: build
-build:
-	docker build -t registry.lothric.net/gogin:0.0.1 .
+.PHONY: docker
+docker:
+	@docker build -t ${IMAGE_ID} .
 
-.PHONY: push
-push: build
-	docker push registry.lothric.net/gogin:0.0.1
+.PHONY: run
+run:
+	@docker run --rm \
+		-p "8080:8080" \
+		${IMAGE_ID}
 
 .PHONY: install
 install:

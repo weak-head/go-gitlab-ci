@@ -1,57 +1,9 @@
 replicas: 3
 
+registry:
+  secret: regcred
+
 image:
-  repository: registry.lothric.net/gogin
+  repository: registry.lothric.net/examples/gogin
   tag: "0.0.1"
   pullPolicy: IfNotPresent
-
-aws:
-  accessKey: ""
-  secretKey: ""
-  defaultRegion: "us-east-1"
-
-config:
-  log:
-    level: "debug"
-    formatter: "json"
-  status:
-    rpc:
-      addr: ":8400"
-  metrics:
-    prometheus:
-      addr: ":8080"
-      path: "/metrics"
-  agent:
-    pipeline:
-      count: 10
-  pipeline:
-    extractor:
-      kind: "aws"
-    source:
-      topic:
-        name: "source_topic"
-        create: true
-        partitions: 50
-        replication: 3
-    destination:
-      topic:
-        name: "destination_topic"
-        create: true
-        partitions: 50
-        replication: 3
-      bucket:
-        name: "destination_bucket"
-        create: true
-        region: "us-east-1"
-  minio:
-    endpoint: "minio-1622663544.minio.svc.cluster.local:9000"
-    useSSL: false
-    accessKey: "myaccesskey"
-    secretKey: "mysecretkey"
-  kafka:
-    reader:
-      brokers: "kafka.kafka.svc.cluster.local:9092"
-      group: "text_extraction"
-    writer:
-      addr: "kafka.kafka.svc.cluster.local:9092"
-      balancer: "hash"
