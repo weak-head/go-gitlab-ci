@@ -1,5 +1,8 @@
 # Gogin
 
+
+## Generate private registry dockerconfigjson for k8s
+
 ```sh
 touch registry_auth
 ```
@@ -16,13 +19,22 @@ echo -n "{REGISTRY_USERNAME}:{REGISTRY_PASSWORD}" | base64
         }
     }
 }
-
 ```
 
 ```sh
 cat registry_auth | base64
 ```
 
-```yaml
-registry.dockerconfigjson: "BASE64_VALUE"
+## Installation
+
+```sh
+
+helm install \
+	--namespace=services \
+	--create-namespace \
+    --set="image.repository=${IMAGE_REPOSITORY}" \
+    --set="image.registry.dockerconfigjson=${DOCKER_CONFIG_BASE64}" \
+    --set="ingress.host.goginDomain=${GOGIN_DOMAIN}" \
+	gogin helm
+
 ```
