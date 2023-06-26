@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "gogoin.fullname" . }}
+  name: {{ include "gogin.fullname" . }}
   labels:
-    {{- include "gogoin.labels" . | nindent 4 }}
+    {{- include "gogin.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

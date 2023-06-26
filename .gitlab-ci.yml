@@ -7,17 +7,9 @@ build-docker:
   image: docker:24
   stage: bundle
   before_script:
-    # docker login asks for the password to be passed through stdin for security
-    # we use $CI_REGISTRY_PASSWORD here which is a special variable provided by GitLab
-    # https://docs.gitlab.com/ce/ci/variables/predefined_variables.html
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    # fetches the latest image (not failing if image is not found)
     - docker pull $CI_REGISTRY_IMAGE:latest || true
-    # builds the project, passing proxy variables, using OCI labels
-    # notice the cache-from, which is going to use the image we just pulled locally
-    # the built image is tagged locally with the commit SHA, and then pushed to 
-    # the GitLab registry
     - >
       docker build
       --pull
@@ -44,52 +36,34 @@ build-helm:
     paths:
     - "*.tgz"
 
-# Here, the goal is to tag the "main" branch as "latest"
 publish-docker-latest:
   image: docker:24
   variables:
-    # We do not need GitLab to clone the source code.
     GIT_STRATEGY: none
   stage: publish
   only:
-    # Only "main" should be tagged "latest"
     - main
   before_script:
-    # docker login asks for the password to be passed through stdin for security
-    # we use $CI_REGISTRY_PASSWORD here which is a special variable provided by GitLab
-    # https://docs.gitlab.com/ce/ci/variables/predefined_variables.html
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    # Because we have no guarantee that this job will be picked up by the same runner 
-    # that built the image in the previous step, we pull it again locally
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    # Then we tag it "latest"
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
-    # And we push it.
     - docker push $CI_REGISTRY_IMAGE:latest
 
-# The goal here is to Docker tag any Git tag
-# GitLab will start a new pipeline everytime a Git tag is created
 publish-docker-tag:
   image: docker:24
   variables:
-    # We do not need GitLab to clone the source code.
     GIT_STRATEGY: none
   stage: publish
   only:
-    # We want this job to be run on tags only.
     - tags
   before_script:
-    # docker login asks for the password to be passed through stdin for security
-    # we use $CI_REGISTRY_PASSWORD here which is a special variable provided by GitLab
-    # https://docs.gitlab.com/ce/ci/variables/predefined_variables.html
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
 
-# GitLab will start a new pipeline everytime a Git tag is created
 publish-helm-tag:
   image: curlimages/curl:latest
   stage: publish
@@ -102,5 +76,5 @@ publish-helm-tag:
       curl 
       --request POST 
       --user gitlab-ci-token:$CI_JOB_TOKEN 
-      --form "chart=@mychart-0.1.0.tgz" 
+      --form "chart=@gogin-0.1.0.tgz" 
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/devel/charts"

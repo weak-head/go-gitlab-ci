@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: registry.lothric.net/examples/go/gogin
   pullPolicy: Always
-  tag: "0.1"
+  tag: "latest"
 
 # 'config.yaml' in secretes, mapped to a volume in the container
 appConfig:
@@ -17,8 +17,8 @@ appConfig:
     signing_key: ""
     protocol: https
 
-imagePullSecrets:
-  - regcred
+imagePullSecrets: 
+  - name: regcred
 
 service:
   type: ClusterIP
@@ -45,7 +45,7 @@ podAnnotations: {}
 
 serviceAccount:
   annotations: {}
-  name: ""
+  name: "gogin.serviceaccount"
 
 securityContext: {}
   # capabilities:
