@@ -1,9 +1,0 @@
-replicas: 3
-
-registry:
-  secret: regcred
-
-image:
-  repository: registry.lothric.net/examples/gogin
-  tag: "0.0.1"
-  pullPolicy: IfNotPresent

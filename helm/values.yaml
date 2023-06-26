@@ -1,0 +1,74 @@
+replicaCount: 1
+
+image:
+  repository: registry.lothric.net/examples/go/gogin
+  pullPolicy: Always
+  tag: "0.1"
+
+# 'config.yaml' in secretes, mapped to a volume in the container
+appConfig:
+  port: 8080
+  log_level: info
+  auth:
+    client_id: ""
+    client_secret: ""
+    host: ""
+    redirect_uri: ""
+    signing_key: ""
+    protocol: https
+
+imagePullSecrets:
+  - regcred
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  host:
+    goginDomain: "gogin.lothric.net"
+  className: "public" # microk8s uses 'public' for nginx
+  annotations: {}
+  # tls:
+  #   goginDomainCert: ""
+  #   goginDomainKey: ""
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+podAnnotations: {}
+
+serviceAccount:
+  annotations: {}
+  name: ""
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
