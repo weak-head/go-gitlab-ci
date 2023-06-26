@@ -1,9 +1,13 @@
 replicaCount: 1
 
 image:
-  repository: registry.lothric.net/examples/go/gogin
+  repository: registry.domain.net/gogin
   pullPolicy: Always
   tag: "latest"
+  registry:
+    enabled: true
+    secret: registry-credentials
+    dockerconfigjson: "" # refer to README
 
 # 'config.yaml' in secretes, mapped to a volume in the container
 appConfig:
@@ -18,7 +22,7 @@ appConfig:
     protocol: https
 
 imagePullSecrets: 
-  - name: regcred
+  - name: registry-credentials 
 
 service:
   type: ClusterIP
@@ -27,7 +31,7 @@ service:
 ingress:
   enabled: true
   host:
-    goginDomain: "gogin.lothric.net"
+    goginDomain: "gogin.domain.net"
   className: "public" # microk8s uses 'public' for nginx
   annotations: {}
   # tls:
