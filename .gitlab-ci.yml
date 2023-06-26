@@ -32,13 +32,17 @@ build-docker:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 build-helm:
-  image: alpine/helm:3.12.1
+  image: 
+    name: alpine/helm
+    entrypoint: [""]
   stage: bundle
   script:
+    #- echo $VERSION
+    #- helm package ./helm --app-version=$VERSION
     - helm package ./helm
   artifacts:
     paths:
-    - gogin-0.1.0.tgz
+    - "*.tgz"
 
 # Here, the goal is to tag the "main" branch as "latest"
 publish-docker-latest:
