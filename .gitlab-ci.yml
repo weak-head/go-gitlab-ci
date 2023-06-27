@@ -50,6 +50,26 @@ publish-docker-latest:
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
 
+publish-helm-latest:
+  image: 
+    name: alpine/helm
+    entrypoint: [""]
+  stage: publish
+  only:
+    - main
+  dependencies:
+    - build-helm
+  before_script:
+    - >
+      helm repo add 
+      --username gitlab-ci-token 
+      --password ${CI_JOB_TOKEN} 
+      ${CI_PROJECT_NAME} 
+      ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/devel
+  script:
+    - helm plugin install https://github.com/chartmuseum/helm-push.git
+    - helm push gogin-0.1.0.tgz ${CI_PROJECT_NAME}
+
 publish-docker-tag:
   image: docker:24
   variables:
@@ -77,4 +97,4 @@ publish-helm-tag:
       --request POST 
       --user gitlab-ci-token:$CI_JOB_TOKEN 
       --form "chart=@gogin-0.1.0.tgz" 
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/devel/charts"
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"
