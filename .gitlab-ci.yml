@@ -67,7 +67,8 @@ publish-helm-latest:
       ${CI_PROJECT_NAME} 
       ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/devel
   script:
-    - helm push gogin-0.1.0.tgz ${CI_PROJECT_NAME}
+    - helm plugin install https://github.com/chartmuseum/helm-push.git
+    - helm cm-push gogin-0.1.0.tgz ${CI_PROJECT_NAME}
 
 publish-docker-tag:
   image: docker:24
