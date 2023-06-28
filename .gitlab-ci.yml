@@ -67,7 +67,7 @@ publish-docker-latest:
   before_script:
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker pull $CI_REGISTRY_IMAGE:CI_COMMIT_REF_SLUG
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
   only:
