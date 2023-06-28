@@ -4,8 +4,8 @@ stages:
   - publish
 
 build-docker:
-  image: docker:24
   stage: bundle
+  image: docker:24
   before_script:
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
@@ -24,10 +24,10 @@ build-docker:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 build-helm:
+  stage: bundle
   image: 
     name: alpine/helm
     entrypoint: [""]
-  stage: bundle
   script:
     #- echo $VERSION
     #- helm package ./helm --app-version=$VERSION
@@ -36,65 +36,54 @@ build-helm:
     paths:
     - "*.tgz"
 
+publish-helm:
+  stage: publish
+  image: 
+    name: alpine/helm
+    entrypoint: [""]
+  dependencies:
+    - build-helm
+  before_script:
+    - apk add git
+    - >
+      helm repo add 
+      --username ${CI_REGISTRY_USER}
+      --password ${CI_REGISTRY_PASSWORD}
+      ${CI_PROJECT_NAME} 
+      ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable
+    - helm plugin install --version=v0.10.4 https://github.com/chartmuseum/helm-push.git
+  script:
+    - helm cm-push ${CI_PROJECT_NAME}*.tgz ${CI_PROJECT_NAME}
+  only:
+    refs:
+      - main
+    changes:
+      - helm/**/*
+
 publish-docker-latest:
+  stage: publish
   image: docker:24
   variables:
     GIT_STRATEGY: none
-  stage: publish
-  only:
-    - main
   before_script:
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
-
-publish-helm-latest:
-  image: 
-    name: alpine/helm
-    entrypoint: [""]
-  stage: publish
   only:
     - main
-  dependencies:
-    - build-helm
-  before_script:
-    - >
-      helm repo add 
-      --username gitlab-ci-token 
-      --password ${CI_JOB_TOKEN} 
-      ${CI_PROJECT_NAME} 
-      ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/devel
-  script:
-    - helm plugin install https://github.com/chartmuseum/helm-push.git
-    - helm cm-push gogin-0.1.0.tgz ${CI_PROJECT_NAME}
 
 publish-docker-tag:
+  stage: publish
   image: docker:24
   variables:
     GIT_STRATEGY: none
-  stage: publish
-  only:
-    - tags
   before_script:
     - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-
-publish-helm-tag:
-  image: curlimages/curl:latest
-  stage: publish
-  dependencies:
-    - build-helm
   only:
     - tags
-  script:
-    - >
-      curl 
-      --request POST 
-      --user gitlab-ci-token:$CI_JOB_TOKEN 
-      --form "chart=@gogin-${CI_COMMIT_REF_NAME}" 
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"
