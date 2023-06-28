@@ -1,7 +1,7 @@
 
 variables:
-  GOLANG_IMAGE: "golang:1.20"
-  DOCKER_IMAGE: "docker:24"
+  GOLANG_IMAGE: golang:1.20
+  DOCKER_IMAGE: docker:24
   HELM_IMAGE: alpine/helm:3.12.1
 
 stages:
@@ -21,7 +21,7 @@ compile-swagger-docs:
     - api/swagger.json
     - api/swagger.yaml
 
-build:
+build-gogin:
   stage: build
   image: $GOLANG_IMAGE
   script:
@@ -137,7 +137,7 @@ publish-docker-tag:
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME:1}
     - docker push $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME:1}
 
-publish-pages:
+pages:
   stage: publish
   image: $GOLANG_IMAGE
   dependencies:
