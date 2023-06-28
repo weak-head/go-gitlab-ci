@@ -1,9 +1,11 @@
 
 stages:
+  - build
+  - test
   - bundle
   - publish
 
-build-docker:
+bundle-docker:
   stage: bundle
   image: docker:24
   script:
@@ -22,7 +24,7 @@ build-docker:
       .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
-build-helm:
+bundle-helm:
   stage: bundle
   image: 
     name: alpine/helm:3.12.1
@@ -39,7 +41,7 @@ publish-helm:
     name: alpine/helm:3.12.1
     entrypoint: [""]
   dependencies:
-    - build-helm
+    - bundle-helm
   before_script:
     - apk add git
     - >
@@ -60,6 +62,8 @@ publish-helm:
 publish-docker-latest:
   stage: publish
   image: docker:24
+  dependencies:
+    - bundle-docker
   variables:
     GIT_STRATEGY: none
   script:
@@ -73,6 +77,8 @@ publish-docker-latest:
 publish-docker-tag:
   stage: publish
   image: docker:24
+  dependencies:
+    - bundle-docker
   variables:
     GIT_STRATEGY: none
   rules:
