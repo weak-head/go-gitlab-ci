@@ -1,13 +1,60 @@
 
+variables:
+  GOLANG_IMAGE: "golang:1.20"
+  DOCKER_IMAGE: "docker:24"
+  HELM_IMAGE: alpine/helm:3.12.1
+
 stages:
+  - compile
   - build
   - test
   - bundle
   - publish
 
+compile-swagger-docs:
+  stage: compile
+  image: $GOLANG_IMAGE
+  script:
+    - make swagger
+  artifacts:
+    paths:
+    - api/swagger.json
+    - api/swagger.yaml
+
+build:
+  stage: build
+  image: $GOLANG_IMAGE
+  script:
+    - make build
+  artifacts:
+    paths:
+    - build/gogin
+
+test-unit-tests:
+  stage: test
+  image: $GOLANG_IMAGE
+  script:
+    - make test
+
+test-race-detector:
+  stage: test
+  image: $GOLANG_IMAGE
+  script:
+    - make race
+
+test-coverage-report:
+  stage: test
+  image: $GOLANG_IMAGE
+  script:
+    - make coverhtml
+  artifacts:
+    paths:
+      - 'coverage/*'
+  coverage: '/^total:.*statements.*?(\d+\.\d+%)$/'
+
 bundle-docker:
   stage: bundle
-  image: docker:24
+  image: $DOCKER_IMAGE
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $CI_REGISTRY_IMAGE:latest || true
@@ -27,7 +74,7 @@ bundle-docker:
 bundle-helm:
   stage: bundle
   image: 
-    name: alpine/helm:3.12.1
+    name: $HELM_IMAGE
     entrypoint: [""]
   script:
     - helm package ./helm
@@ -38,7 +85,7 @@ bundle-helm:
 publish-helm:
   stage: publish
   image: 
-    name: alpine/helm:3.12.1
+    name: $HELM_IMAGE
     entrypoint: [""]
   dependencies:
     - bundle-helm
@@ -61,7 +108,7 @@ publish-helm:
 
 publish-docker-latest:
   stage: publish
-  image: docker:24
+  image: $DOCKER_IMAGE
   dependencies:
     - bundle-docker
   variables:
@@ -76,7 +123,7 @@ publish-docker-latest:
 
 publish-docker-tag:
   stage: publish
-  image: docker:24
+  image: $DOCKER_IMAGE
   dependencies:
     - bundle-docker
   variables:
@@ -89,3 +136,17 @@ publish-docker-tag:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME:1}
     - docker push $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME:1}
+
+publish-pages:
+  stage: publish
+  image: $GOLANG_IMAGE
+  dependencies:
+    - test-coverage-report
+  script:
+    - ls coverage/
+    - mv coverage/ public/
+    - 'if [ -f public/coverage.html ]; then mv public/coverage.html public/index.html; fi'
+  artifacts:
+    name: public
+    paths:
+      - public

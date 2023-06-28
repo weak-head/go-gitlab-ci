@@ -1,2 +1,19 @@
-.env
+# VS Code
+.vscode
+
+# MacOS
+.DS_Store
+
+# Test and coverage output
+coverage/
+coverage.html
+coverage.cov
+
+# Build output
+build/
+
+# Helm package
 *.tgz
+
+# Config vars
+.env

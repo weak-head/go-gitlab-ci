@@ -7,6 +7,7 @@
   - [Add GitLab Helm registry](#add-gitlab-helm-registry)
   - [Authorize private docker registry access](#authorize-private-docker-registry-access)
   - [Install/update gogin](#installupdate-gogin)
+  - [Uninstall gogin](#uninstall-gogin)
 
 ## Overview
 
@@ -65,8 +66,16 @@ helm upgrade \
     --install gogin \
     gogin-repo/gogin \
     --version 0.1.0-alpha \
-	--namespace=services \
-	--create-namespace \
+    --namespace=services \
+    --create-namespace \
     --set="image.registry.dockerconfigjson=${DOCKER_CONFIG}" \
     --set="ingress.host.goginDomain=${GOGIN_DOMAIN}"
+```
+
+### Uninstall gogin
+
+```sh
+helm uninstall \
+    --namespace=services \
+    gogin
 ```
