@@ -1,9 +1,40 @@
-# Gogin
+# Gogin <!-- omit from toc -->
 
+## Table of Contents <!-- omit from toc -->
 
-## Access private docker registry from k8s
+- [Overview](#overview)
+- [Installation](#installation)
+  - [Add GitLab Helm registry](#add-gitlab-helm-registry)
+  - [Authorize private docker registry access](#authorize-private-docker-registry-access)
+  - [Install/update gogin](#installupdate-gogin)
 
-Create `dockerconfigjson` that is required for private container repositories auth on kubernetes:
+## Overview
+
+TBD
+
+## Installation
+
+TBD 
+
+### Add GitLab Helm registry
+
+```sh
+# Settings -> Repository -> Deploy tokens
+export GITLAB_DEPLOYTOKEN_USERNAME = "gitlab-deployment-1"
+export GITLAB_DEPLOYTOKEN_SECRET = "secretKey"
+
+helm repo add \
+    --username ${GITLAB_DEPLOYTOKEN_USERNAME} \
+    --password ${GITLAB_DEPLOYTOKEN_SECRET} \
+    gogin-repo \
+    https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable
+
+helm repo update
+```
+
+### Authorize private docker registry access
+
+TBD
 
 ```bash
 {
@@ -19,52 +50,23 @@ EOF
 } | base64
 ```
 
-The output is for `image.registry.dockerconfigjson` to authenticate for image pull.
+Use the `base64` output as `image.registry.dockerconfigjson` to allow pulling docker image from GitLab container registry using the service account.
 
-## Installation
+### Install/update gogin
 
 ```sh
-
-# Settings -> Repository -> Deploy tokens
-export GITLAB_DEPLOYTOKEN_USERNAME = "gitlab-deployment-1"
-export GITLAB_DEPLOYTOKEN_SECRET = "secret"
-
-# Generate for private registry
 export DOCKER_CONFIG = "dockerconfigjson"
-
-# Deployment domain for ingress
 export GOGIN_DOMAIN = "gogin.k8s.lothric.net"
 
-helm repo add \
-    --username ${GITLAB_DEPLOYTOKEN_USERNAME} \
-    --password ${GITLAB_DEPLOYTOKEN_SECRET} \
-    gogin-repo \
-    https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable
+# or load ENV vars from .env file
+set -o allexport; source .env; set +o allexport
 
-helm install \
+helm upgrade \
+    --install gogin \
+    gogin-repo/gogin \
+    --version 0.1.0-alpha \
 	--namespace=services \
 	--create-namespace \
     --set="image.registry.dockerconfigjson=${DOCKER_CONFIG}" \
-    --set="ingress.host.goginDomain=${GOGIN_DOMAIN}" \
-	gogin helm
-```
-
-## Publish devel Helm chart (CI pipeline)
-
-```sh
-# Add GitLab helm repo
-helm repo add  \
-    --username gitlab-ci-token \
-    --password ${CI_JOB_TOKEN} \
-    ${CI_PROJECT_NAME} \
-    ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/devel
-
-# For cm-push
-helm plugin install https://github.com/chartmuseum/helm-push.git
-
-# Package helm chart
-helm package ./helm
-
-# Publish helm chart
-helm cm-push gogin-0.1.0.tgz ${CI_PROJECT_NAME}
+    --set="ingress.host.goginDomain=${GOGIN_DOMAIN}"
 ```
