@@ -25,11 +25,9 @@ build-docker:
 build-helm:
   stage: bundle
   image: 
-    name: alpine/helm
+    name: alpine/helm:3.12.1
     entrypoint: [""]
   script:
-    #- echo $VERSION
-    #- helm package ./helm --app-version=$VERSION
     - helm package ./helm
   artifacts:
     paths:
@@ -38,7 +36,7 @@ build-helm:
 publish-helm:
   stage: publish
   image: 
-    name: alpine/helm
+    name: alpine/helm:3.12.1
     entrypoint: [""]
   dependencies:
     - build-helm
@@ -64,9 +62,8 @@ publish-docker-latest:
   image: docker:24
   variables:
     GIT_STRATEGY: none
-  before_script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
@@ -78,11 +75,13 @@ publish-docker-tag:
   image: docker:24
   variables:
     GIT_STRATEGY: none
-  before_script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ "/^v((?P<major>0|[1-9]\d*)(\.(?P<minor>0|[1-9]\d*)(\.(?P<patch>0|[1-9]\d*))?)?)$/"'
+      when: always
   script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME:1}
+    - docker push $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME:1}
   only:
     - tags
