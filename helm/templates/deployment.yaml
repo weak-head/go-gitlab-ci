@@ -42,14 +42,12 @@ spec:
             containerPort: {{ .Values.appConfig.port }}
             protocol: TCP
           readinessProbe:
-            httpGet:
-              path: /v1/info
-              port: {{ .Values.appConfig.port }}
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr={{ .Values.appConfig.status.rpc.addr }}"]
             initialDelaySeconds: 5
           livenessProbe:
-            httpGet:
-              path: /v1/info
-              port: {{ .Values.appConfig.port }}
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr={{ .Values.appConfig.status.rpc.addr }}"]
             initialDelaySeconds: 10
           volumeMounts:
           - name: config

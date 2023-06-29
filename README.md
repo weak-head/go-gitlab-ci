@@ -8,6 +8,10 @@
   - [Authorize private docker registry access](#authorize-private-docker-registry-access)
   - [Install/update gogin](#installupdate-gogin)
   - [Uninstall gogin](#uninstall-gogin)
+- [Troubleshooting](#troubleshooting)
+  - [Get rendered Helm chart template](#get-rendered-helm-chart-template)
+  - [Building and running docker container](#building-and-running-docker-container)
+  - [Local development](#local-development)
 
 ## Overview
 
@@ -79,3 +83,22 @@ helm uninstall \
     --namespace=services \
     gogin
 ```
+
+
+## Troubleshooting
+
+TBD
+
+### Get rendered Helm chart template
+
+```sh
+helm template gogin ./helm
+```
+
+### Building and running docker container
+
+TBD
+
+### Local development
+
+TBD

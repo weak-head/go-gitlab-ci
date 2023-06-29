@@ -12,14 +12,16 @@ image:
 # 'config.yaml' in secretes, mapped to a volume in the container
 appConfig:
   port: 8080
-  log_level: info
-  auth:
-    client_id: ""
-    client_secret: ""
-    host: ""
-    redirect_uri: ""
-    signing_key: ""
-    protocol: https
+  log:
+    level: "debug"
+    formatter: "json"
+  status:
+    rpc:
+      addr: ":8400"
+  metrics:
+    prometheus:
+      addr: ":8880"
+      path: "/metrics"
 
 imagePullSecrets: 
   - name: registry-credentials 
