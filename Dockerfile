@@ -28,4 +28,4 @@ FROM scratch
 COPY --from=build /go/bin/gogin /bin/gogin
 COPY --from=build /go/bin/grpc_health_probe /bin/grpc_health_probe
 
-ENTRYPOINT ["/bin/gogin"]
+CMD ["/bin/gogin"]

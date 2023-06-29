@@ -1,0 +1,315 @@
+basePath: /api
+definitions:
+  models.Error:
+    description: Error is a single error that has happened during the HTTP API request
+      processing.  Sometimes, we may want to report more than one error for a request.
+      In this case, we should return several errors in a list.
+    properties:
+      code:
+        description: |-
+          Code contains the unique error code.
+
+          The code field should not match the response code.
+          Instead, it should be an error code unique to our application.
+          Generally, there is no convention for the error code field, expect that it be unique.
+
+          Usually, this field contains only alphanumerics and connecting characters, such as dashes or underscores.
+          For example, 0001, auth-0001 and incorrect-user-pass are canonical examples of error codes.
+        example: x-id-name-missing
+        type: string
+      detail:
+        description: |-
+          Detail is optional information that targets developers and could help trace and investigate
+          the internal reasons why the error has happened.
+
+          The detail portion is intended for use by developers of clients and not the end user,
+          so the translation is not necessary.
+        example: internal.pkg.api.middleware.idcheck
+        type: string
+      message:
+        description: |-
+          Message is the presentable message to a user.
+
+          The message portion of the body is usually considered presentable on user interfaces.
+          Therefore, we should translate this title if we support internationalization.
+          So if a client sends a request with an Accept-Language header corresponding to French,
+          the title value should be translated to French.
+        example: The 'x-id-name' header is missing.
+        type: string
+    required:
+    - code
+    - detail
+    - message
+    type: object
+  models.Gist:
+    description: Gist is a definition of a Source Code gist that should be saved to
+      the storage.
+    properties:
+      code:
+        description: Code is a Source Code gits.
+        example: for (let i = 0; i < 5; i++) {...}
+        type: string
+      description:
+        description: Description is a human readable Gist description.
+        example: Example of how to generate a unique ID in java script.
+        type: string
+      language:
+        description: Language is a programming language that is used in the gist.
+        example: javascript
+        type: string
+      name:
+        description: Name is a human readable Gist name.
+        example: Generate unique ID
+        type: string
+    required:
+    - code
+    - language
+    - name
+    type: object
+  models.GistDetails:
+    description: GistDetails provides the detailed information about the requested
+      Gist and includes all the available public information that is stored in the
+      service.
+    properties:
+      code:
+        description: Code is a Source Code gits.
+        example: for (let i = 0; i < 5; i++) {...}
+        type: string
+      createdAt:
+        description: |-
+          CreatedAt defines the date and time when the gist has been created.
+          This field uses RFC 3339 as the standard for the date-time format.
+        example: "2023-06-07T18:27:25-04:00"
+        type: string
+      description:
+        description: Description is a human readable Gist description.
+        example: Example of how to generate a unique ID in java script.
+        type: string
+      id:
+        description: Id is a globally unique Gist ID that identifies this Gist entry.
+        example: d17043a0-216c-4c56-9127-b0bf5e3a4c16
+        type: string
+      language:
+        description: Language is a programming language that is used in the gist.
+        example: javascript
+        type: string
+      lastAccessed:
+        description: |-
+          LastAccessed defines the date and time when the gist has been accessed.
+
+          Only direct operations on this gist update the field.
+          Such operations as 'get all gists' doesn't update the field.
+
+          This field uses RFC 3339 as the standard for the date-time format.
+        example: "2023-06-24T08:13:59-04:00"
+        type: string
+      lastUpdated:
+        description: |-
+          LastUpdated defines the date and time when the gist has been updated.
+          This field uses RFC 3339 as the standard for the date-time format.
+        example: "2023-06-11T10:44:17-04:00"
+        type: string
+      name:
+        description: Name is a human readable Gist name.
+        example: Generate unique ID
+        type: string
+    required:
+    - code
+    - createdAt
+    - id
+    - language
+    - name
+    type: object
+  models.GistInfo:
+    description: GistInfo provides the descriptive information about the Gist entry
+      and doesn't return the actual Gist definition.
+    properties:
+      description:
+        description: Description is a human readable Gist description.
+        example: Example of how to generate a unique ID in java script.
+        type: string
+      id:
+        description: Id is a globally unique Gist ID that identifies this Gist entry.
+        example: d17043a0-216c-4c56-9127-b0bf5e3a4c16
+        type: string
+      language:
+        description: Language is a programming language that is used in the gist.
+        example: javascript
+        type: string
+      name:
+        description: Name is a human readable Gist name.
+        example: Generate unique ID
+        type: string
+    required:
+    - id
+    - language
+    - name
+    type: object
+info:
+  contact: {}
+  description: Gogin service provides the unified gist storage
+  title: Gogin
+  version: 0.2.0
+paths:
+  /gists:
+    get:
+      description: |-
+        This method returns the list of Gists, that are created using a particular programming language.
+        This is filtered subset of all available Gists.
+      parameters:
+      - description: Programming language
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The list of Gists has been successfully retrieved.
+          schema:
+            items:
+              $ref: '#/definitions/models.GistInfo'
+            type: array
+        "500":
+          description: The service has encountered unexpected error that it was not
+            able to handle.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+      summary: Get the list of Source Code Gists, filtered by programming language.
+      tags:
+      - Gists
+    post:
+      description: This method is called to create and store a new Gist
+      parameters:
+      - description: Gist definition
+        in: body
+        name: gist
+        required: true
+        schema:
+          $ref: '#/definitions/models.Gist'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Gist has been created.
+          schema:
+            $ref: '#/definitions/models.GistInfo'
+        "400":
+          description: Failed to parse JSON request content.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+        "500":
+          description: The service has encountered unexpected error that it was not
+            able to handle.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+      summary: Create a new Gist.
+      tags:
+      - Gists
+  /gists/{id}:
+    delete:
+      description: This method is called to delete an existing Gist definition.
+      parameters:
+      - description: Gist id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Gist has been deleted.
+          schema:
+            $ref: '#/definitions/models.GistInfo'
+        "404":
+          description: The specified Gist does not exist.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+        "500":
+          description: The service has encountered unexpected error that it was not
+            able to handle.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+      summary: Delete previously created Gist.
+      tags:
+      - Gists
+    get:
+      parameters:
+      - description: Gist id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The Gist definition has been successfully retrieved.
+          schema:
+            $ref: '#/definitions/models.GistDetails'
+        "404":
+          description: The specified Gist does not exist.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+        "500":
+          description: The service has encountered unexpected error that it was not
+            able to handle.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+      summary: Get the detailed information about the Gist.
+      tags:
+      - Gists
+    put:
+      description: |
+        This method is called to update and store an existing Gist definition.
+      parameters:
+      - description: Gist id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Gist definition
+        in: body
+        name: template
+        required: true
+        schema:
+          $ref: '#/definitions/models.Gist'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Gist has been updated.
+          schema:
+            $ref: '#/definitions/models.GistInfo'
+        "400":
+          description: Failed to parse JSON request content.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+        "500":
+          description: The service has encountered unexpected error that it was not
+            able to handle.
+          schema:
+            items:
+              $ref: '#/definitions/models.Error'
+            type: array
+      summary: Create or replace the Gist.
+      tags:
+      - Gists
+swagger: "2.0"

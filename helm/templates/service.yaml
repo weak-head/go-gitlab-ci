@@ -8,7 +8,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.appConfig.port }}
+      targetPort: {{ .Values.appConfig.http.port }}
       protocol: TCP
   selector:
     {{- include "gogin.selectorLabels" . | nindent 4 }}

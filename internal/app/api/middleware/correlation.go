@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"git.lothric.net/examples/go/gogin/internal/pkg/api/constants"
+	"git.lothric.net/examples/go/gogin/internal/app/api/constants"
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
 )
 

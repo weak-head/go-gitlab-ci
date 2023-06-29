@@ -11,7 +11,10 @@ image:
 
 # 'config.yaml' in secretes, mapped to a volume in the container
 appConfig:
-  port: 8080
+  http:
+    port: 8080
+    gin:
+      mode: "release"
   log:
     level: "debug"
     formatter: "json"

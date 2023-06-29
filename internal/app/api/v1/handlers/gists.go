@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"git.lothric.net/examples/go/gogin/internal/pkg/api/constants"
-	"git.lothric.net/examples/go/gogin/internal/pkg/api/helpers"
-	"git.lothric.net/examples/go/gogin/internal/pkg/api/v1/models"
+	"git.lothric.net/examples/go/gogin/internal/app/api/constants"
+	"git.lothric.net/examples/go/gogin/internal/app/api/helpers"
+	"git.lothric.net/examples/go/gogin/internal/app/api/v1/models"
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
 )
 
@@ -68,10 +68,10 @@ func (gh *gistsHandler) AttachTo(g *gin.RouterGroup) error {
 //	@Description	This method returns the list of Gists, that are created using a particular programming language.
 //	@Description	This is filtered subset of all available Gists.
 //	@Tags			Gists
-//	@Param			lang					query	string	false	"Programming language"
+//	@Param			lang	query	string	false	"Programming language"
 //	@Produce		json
 //	@Success		200	{array}	models.GistInfo	"The list of Gists has been successfully retrieved."
-//	@Failure		500	{array}	models.Error		"The service has encountered unexpected error that it was not able to handle."
+//	@Failure		500	{array}	models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists [get]
 func (gh *gistsHandler) getGists(c *gin.Context) {
 	log, _, _, err := helpers.ParseContext(gh.log, c, "getGists")
@@ -110,11 +110,11 @@ func (gh *gistsHandler) getGists(c *gin.Context) {
 //	@Summary		Create a new Gist.
 //	@Description	This method is called to create and store a new Gist
 //	@Tags			Gists
-//	@Param			gist			body	models.Gist	true	"Gist definition"
+//	@Param			gist	body	models.Gist	true	"Gist definition"
 //	@Produce		json
 //	@Success		201	{object}	models.GistInfo	"Gist has been created."
-//	@Failure		400	{array}		models.Error		"Failed to parse JSON request content."
-//	@Failure		500	{array}		models.Error		"The service has encountered unexpected error that it was not able to handle."
+//	@Failure		400	{array}		models.Error	"Failed to parse JSON request content."
+//	@Failure		500	{array}		models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists [post]
 func (gh *gistsHandler) postGist(c *gin.Context) {
 	log, _, _, err := helpers.ParseContext(gh.log, c, "postGist")
@@ -150,14 +150,14 @@ func (gh *gistsHandler) postGist(c *gin.Context) {
 
 // getGist godoc
 //
-//	@Summary		Get the detailed information about the Gist.
-//	@Tags			Gists
-//	@Param			id					path	string		true	"Gist id"
-//	@Produce		json
-//	@Success		200	{object}	models.GistDetails	"The Gist definition has been successfully retrieved."
-//	@Failure		404	{array}		models.Error			"The specified Gist does not exist."
-//	@Failure		500	{array}		models.Error			"The service has encountered unexpected error that it was not able to handle."
-//	@Router			/gists/{id} [get]
+//	@Summary	Get the detailed information about the Gist.
+//	@Tags		Gists
+//	@Param		id	path	string	true	"Gist id"
+//	@Produce	json
+//	@Success	200	{object}	models.GistDetails	"The Gist definition has been successfully retrieved."
+//	@Failure	404	{array}		models.Error		"The specified Gist does not exist."
+//	@Failure	500	{array}		models.Error		"The service has encountered unexpected error that it was not able to handle."
+//	@Router		/gists/{id} [get]
 func (gh *gistsHandler) getGist(c *gin.Context) {
 	log, _, _, err := helpers.ParseContext(gh.log, c, "getGist")
 	if err != nil {
@@ -192,14 +192,14 @@ func (gh *gistsHandler) getGist(c *gin.Context) {
 //	@Summary		Create or replace the Gist.
 //	@Description	This method is called to update and store an existing Gist definition.
 //	@Description
-//	@Tags			Gists
-//	@Param			id					path	string				true	"Gist id"
-//	@Param			template			body	models.Gist true	"Gist definition"
-//	@Produce		json
-//	@Success		201	{object}	models.GistInfo	"Gist has been updated."
-//	@Failure		400	{array}		models.Error		"Failed to parse JSON request content."
-//	@Failure		500	{array}		models.Error		"The service has encountered unexpected error that it was not able to handle."
-//	@Router			/gists/{id} [put]
+//	@Tags		Gists
+//	@Param		id			path	string		true	"Gist id"
+//	@Param		template	body	models.Gist	true	"Gist definition"
+//	@Produce	json
+//	@Success	201	{object}	models.GistInfo	"Gist has been updated."
+//	@Failure	400	{array}		models.Error	"Failed to parse JSON request content."
+//	@Failure	500	{array}		models.Error	"The service has encountered unexpected error that it was not able to handle."
+//	@Router		/gists/{id} [put]
 func (gh *gistsHandler) putGist(c *gin.Context) {
 	log, _, _, err := helpers.ParseContext(gh.log, c, "putGist")
 	if err != nil {
@@ -237,12 +237,12 @@ func (gh *gistsHandler) putGist(c *gin.Context) {
 //
 //	@Summary		Delete previously created Gist.
 //	@Description	This method is called to delete an existing Gist definition.
-//	@Tags			Gist
-//	@Param			id					path	string		true	"Gist id"
+//	@Tags			Gists
+//	@Param			id	path	string	true	"Gist id"
 //	@Produce		json
 //	@Success		204	{object}	models.GistInfo	"Gist has been deleted."
-//	@Failure		404	{array}		models.Error		"The specified Gist does not exist."
-//	@Failure		500	{array}		models.Error		"The service has encountered unexpected error that it was not able to handle."
+//	@Failure		404	{array}		models.Error	"The specified Gist does not exist."
+//	@Failure		500	{array}		models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists/{id} [delete]
 func (gh *gistsHandler) deleteGist(c *gin.Context) {
 	log, _, _, err := helpers.ParseContext(gh.log, c, "deleteGist")

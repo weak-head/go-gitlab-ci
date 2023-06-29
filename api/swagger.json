@@ -1,0 +1,387 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Gogin service provides the unified gist storage",
+        "title": "Gogin",
+        "contact": {},
+        "version": "0.2.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/gists": {
+            "get": {
+                "description": "This method returns the list of Gists, that are created using a particular programming language.\nThis is filtered subset of all available Gists.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gists"
+                ],
+                "summary": "Get the list of Source Code Gists, filtered by programming language.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Programming language",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The list of Gists has been successfully retrieved.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.GistInfo"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "The service has encountered unexpected error that it was not able to handle.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "This method is called to create and store a new Gist",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gists"
+                ],
+                "summary": "Create a new Gist.",
+                "parameters": [
+                    {
+                        "description": "Gist definition",
+                        "name": "gist",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Gist"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Gist has been created.",
+                        "schema": {
+                            "$ref": "#/definitions/models.GistInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to parse JSON request content.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "The service has encountered unexpected error that it was not able to handle.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/gists/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gists"
+                ],
+                "summary": "Get the detailed information about the Gist.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Gist id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The Gist definition has been successfully retrieved.",
+                        "schema": {
+                            "$ref": "#/definitions/models.GistDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The specified Gist does not exist.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "The service has encountered unexpected error that it was not able to handle.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "This method is called to update and store an existing Gist definition.\n",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gists"
+                ],
+                "summary": "Create or replace the Gist.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Gist id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gist definition",
+                        "name": "template",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Gist"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Gist has been updated.",
+                        "schema": {
+                            "$ref": "#/definitions/models.GistInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to parse JSON request content.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "The service has encountered unexpected error that it was not able to handle.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "This method is called to delete an existing Gist definition.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gists"
+                ],
+                "summary": "Delete previously created Gist.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Gist id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Gist has been deleted.",
+                        "schema": {
+                            "$ref": "#/definitions/models.GistInfo"
+                        }
+                    },
+                    "404": {
+                        "description": "The specified Gist does not exist.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "The service has encountered unexpected error that it was not able to handle.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Error"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Error": {
+            "description": "Error is a single error that has happened during the HTTP API request processing.  Sometimes, we may want to report more than one error for a request. In this case, we should return several errors in a list.",
+            "type": "object",
+            "required": [
+                "code",
+                "detail",
+                "message"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Code contains the unique error code.\n\nThe code field should not match the response code.\nInstead, it should be an error code unique to our application.\nGenerally, there is no convention for the error code field, expect that it be unique.\n\nUsually, this field contains only alphanumerics and connecting characters, such as dashes or underscores.\nFor example, 0001, auth-0001 and incorrect-user-pass are canonical examples of error codes.",
+                    "type": "string",
+                    "example": "x-id-name-missing"
+                },
+                "detail": {
+                    "description": "Detail is optional information that targets developers and could help trace and investigate\nthe internal reasons why the error has happened.\n\nThe detail portion is intended for use by developers of clients and not the end user,\nso the translation is not necessary.",
+                    "type": "string",
+                    "example": "internal.pkg.api.middleware.idcheck"
+                },
+                "message": {
+                    "description": "Message is the presentable message to a user.\n\nThe message portion of the body is usually considered presentable on user interfaces.\nTherefore, we should translate this title if we support internationalization.\nSo if a client sends a request with an Accept-Language header corresponding to French,\nthe title value should be translated to French.",
+                    "type": "string",
+                    "example": "The 'x-id-name' header is missing."
+                }
+            }
+        },
+        "models.Gist": {
+            "description": "Gist is a definition of a Source Code gist that should be saved to the storage.",
+            "type": "object",
+            "required": [
+                "code",
+                "language",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Code is a Source Code gits.",
+                    "type": "string",
+                    "example": "for (let i = 0; i \u003c 5; i++) {...}"
+                },
+                "description": {
+                    "description": "Description is a human readable Gist description.",
+                    "type": "string",
+                    "example": "Example of how to generate a unique ID in java script."
+                },
+                "language": {
+                    "description": "Language is a programming language that is used in the gist.",
+                    "type": "string",
+                    "example": "javascript"
+                },
+                "name": {
+                    "description": "Name is a human readable Gist name.",
+                    "type": "string",
+                    "example": "Generate unique ID"
+                }
+            }
+        },
+        "models.GistDetails": {
+            "description": "GistDetails provides the detailed information about the requested Gist and includes all the available public information that is stored in the service.",
+            "type": "object",
+            "required": [
+                "code",
+                "createdAt",
+                "id",
+                "language",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Code is a Source Code gits.",
+                    "type": "string",
+                    "example": "for (let i = 0; i \u003c 5; i++) {...}"
+                },
+                "createdAt": {
+                    "description": "CreatedAt defines the date and time when the gist has been created.\nThis field uses RFC 3339 as the standard for the date-time format.",
+                    "type": "string",
+                    "example": "2023-06-07T18:27:25-04:00"
+                },
+                "description": {
+                    "description": "Description is a human readable Gist description.",
+                    "type": "string",
+                    "example": "Example of how to generate a unique ID in java script."
+                },
+                "id": {
+                    "description": "Id is a globally unique Gist ID that identifies this Gist entry.",
+                    "type": "string",
+                    "example": "d17043a0-216c-4c56-9127-b0bf5e3a4c16"
+                },
+                "language": {
+                    "description": "Language is a programming language that is used in the gist.",
+                    "type": "string",
+                    "example": "javascript"
+                },
+                "lastAccessed": {
+                    "description": "LastAccessed defines the date and time when the gist has been accessed.\n\nOnly direct operations on this gist update the field.\nSuch operations as 'get all gists' doesn't update the field.\n\nThis field uses RFC 3339 as the standard for the date-time format.",
+                    "type": "string",
+                    "example": "2023-06-24T08:13:59-04:00"
+                },
+                "lastUpdated": {
+                    "description": "LastUpdated defines the date and time when the gist has been updated.\nThis field uses RFC 3339 as the standard for the date-time format.",
+                    "type": "string",
+                    "example": "2023-06-11T10:44:17-04:00"
+                },
+                "name": {
+                    "description": "Name is a human readable Gist name.",
+                    "type": "string",
+                    "example": "Generate unique ID"
+                }
+            }
+        },
+        "models.GistInfo": {
+            "description": "GistInfo provides the descriptive information about the Gist entry and doesn't return the actual Gist definition.",
+            "type": "object",
+            "required": [
+                "id",
+                "language",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "description": "Description is a human readable Gist description.",
+                    "type": "string",
+                    "example": "Example of how to generate a unique ID in java script."
+                },
+                "id": {
+                    "description": "Id is a globally unique Gist ID that identifies this Gist entry.",
+                    "type": "string",
+                    "example": "d17043a0-216c-4c56-9127-b0bf5e3a4c16"
+                },
+                "language": {
+                    "description": "Language is a programming language that is used in the gist.",
+                    "type": "string",
+                    "example": "javascript"
+                },
+                "name": {
+                    "description": "Name is a human readable Gist name.",
+                    "type": "string",
+                    "example": "Generate unique ID"
+                }
+            }
+        }
+    }
+}

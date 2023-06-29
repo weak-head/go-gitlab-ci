@@ -4,18 +4,22 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-
-	"git.lothric.net/examples/go/gogin/internal/pkg/api/constants"
 )
 
 // context key type for CorrelationID
 type contextKeyCorrelationID string
 
 const (
+
+	// HttpCorrelationId is the HTTP header that helps to establish
+	// the unique correlation of inter-service API calls
+	// as well as internal calls between components of the system
+	HeaderCorrelationId = "x-request-id"
+
 	// CorrelationId is the HTTP header that helps to establish
 	// the unique correlation of inter-service API calls
 	// as well as internal calls between components of the system
-	CorrelationId contextKeyCorrelationID = "x-request-id"
+	CorrelationId contextKeyCorrelationID = HeaderCorrelationId
 )
 
 // FromGin extracts correlationId from Gin context
@@ -28,7 +32,7 @@ func FromGin(
 ) (Log, context.Context) {
 
 	// Extract fields from the gin context
-	corrId := c.GetString(constants.HeaderCorrelationId)
+	corrId := c.GetString(HeaderCorrelationId)
 
 	// Logger with the required fields set
 	log := parentLog.WithFields(Fields{

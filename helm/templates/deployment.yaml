@@ -37,9 +37,13 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+          - /bin/gogin
+          - --config
+          - /app/config/config.yaml
           ports:
           - name: http
-            containerPort: {{ .Values.appConfig.port }}
+            containerPort: {{ .Values.appConfig.http.port }}
             protocol: TCP
           readinessProbe:
             exec:

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"git.lothric.net/examples/go/gogin/internal/pkg/api/v1/models"
+	"git.lothric.net/examples/go/gogin/internal/app/api/v1/models"
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
 )
 
