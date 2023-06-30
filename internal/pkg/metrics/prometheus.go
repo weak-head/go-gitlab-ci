@@ -106,23 +106,23 @@ func (p *prometheusServer) Stop(ctx context.Context) error {
 }
 
 // reporter
-type reporter struct {
+type Reporter struct {
 }
 
 // NewReporter
-func NewReporter() (*reporter, error) {
-	return &reporter{}, nil
+func NewReporter() (*Reporter, error) {
+	return &Reporter{}, nil
 }
 
 // ApiRequestProcessed
-func (r *reporter) ApiRequestProcessed(operation string, milliseconds float64) {
+func (r *Reporter) ApiRequestProcessed(operation string, milliseconds float64) {
 	requestDuration.WithLabelValues(operation).Observe(milliseconds)
 	requestDurationsHistogram.WithLabelValues(operation).Observe(milliseconds)
 	requestsTotal.WithLabelValues(operation).Inc()
 }
 
 // ApiRequestFailed
-func (r *reporter) ApiRequestFailed(operation string, failure string) {
+func (r *Reporter) ApiRequestFailed(operation string, failure string) {
 	requestsTotal.WithLabelValues(operation).Inc()
 	requestsFailures.WithLabelValues(operation, failure).Inc()
 }

@@ -83,17 +83,19 @@ func runApp(config cfg) error {
 	// HTTP API server
 	ctx := context.Background()
 
-	componentFactory, err := components.NewComponentFactory()
+	componentFactory, err := components.NewComponentFactory(log)
 	if err != nil {
 		log.Error(err, "Failed to create component factory")
 		return err
 	}
 
-	router, err := api.BuildApiEngine(ctx, log, componentFactory)
+	apiBuilder, err := api.NewApiBuilder(log, componentFactory)
 	if err != nil {
 		log.Error(err, "Failed to create HTTP API server.")
 		return err
 	}
+
+	router, err := apiBuilder.BuildApi(ctx)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", viper.GetString(httpPort)),
@@ -138,7 +140,7 @@ func runApp(config cfg) error {
 
 	// Wait
 	<-ctx.Done()
-	log.Info("Timeout of 5 seconds has ended. Gogin exiting.")
+	log.Info("Timeout of 5 seconds has ended. GoGin exiting.")
 
 	return nil
 }

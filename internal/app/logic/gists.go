@@ -15,14 +15,14 @@ type Reporter interface {
 	ApiRequestFailed(operation string, failure string)
 }
 
-type gistsLogic struct {
+type GistsLogic struct {
 }
 
 func NewGistsLogic(
 	log logger.Log,
 	reporter Reporter,
-) (*gistsLogic, error) {
+) (*GistsLogic, error) {
 
-	gl := &gistsLogic{}
+	gl := &GistsLogic{}
 	return gl, nil
 }

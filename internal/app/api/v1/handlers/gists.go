@@ -16,14 +16,25 @@ const (
 	QueryLanguage = "lang"
 )
 
-// GistsLogic is just a a skeleton for BLL injection.
+// GistsLogic is a business logic layer for gists related functionality.
 type GistsLogic interface {
+}
+
+// MetricsReporter is metrics reporting handler for gists APIs.
+type MetricsReporter interface {
+
+	// ApiRequestProcessed
+	ApiRequestProcessed(operation string, milliseconds float64)
+
+	// ApiRequestFailed
+	ApiRequestFailed(operation string, failure string)
 }
 
 // gistsHandler handles all APIs calls for the 'gists' resource.
 type gistsHandler struct {
-	log   logger.Log
-	logic GistsLogic
+	log     logger.Log
+	logic   GistsLogic
+	metrics MetricsReporter
 }
 
 // NewGistsHandler creates a new instance of the API handler
@@ -31,10 +42,13 @@ type gistsHandler struct {
 func NewGistsHandler(
 	log logger.Log,
 	logic GistsLogic,
+	metrics MetricsReporter,
 ) (*gistsHandler, error) {
 
 	gh := &gistsHandler{
-		log: log.WithField(logger.FieldPackage, "handlers"),
+		log:     log.WithField(logger.FieldPackage, "handlers"),
+		logic:   logic,
+		metrics: metrics,
 	}
 
 	return gh, nil
