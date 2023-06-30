@@ -3,11 +3,11 @@ replicaCount: 1
 image:
   repository: registry.lothric.net/examples/go/gogin
   pullPolicy: Always
-  tag: "latest"
+  tag: "0.2.0"
   registry:
     enabled: true
     secret: registry-credentials
-    dockerconfigjson: "" # refer to README
+    dockerConfig: "" # refer to README
 
 # 'config.yaml' in secretes, mapped to a volume in the container
 appConfig:

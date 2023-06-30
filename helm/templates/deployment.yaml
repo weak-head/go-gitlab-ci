@@ -30,7 +30,7 @@ spec:
       volumes:
       - name: config
         secret:
-          secretName: {{ include "gogin.fullname" . }}
+          secretName: {{ include "gogin.fullname" . }}-conf
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
