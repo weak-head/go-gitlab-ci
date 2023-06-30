@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 
 	"git.lothric.net/examples/go/gogin/internal/app/api"
+	"git.lothric.net/examples/go/gogin/internal/app/components"
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
 	"git.lothric.net/examples/go/gogin/internal/pkg/metrics"
 	"git.lothric.net/examples/go/gogin/internal/pkg/status"
@@ -81,7 +82,14 @@ func runApp(config cfg) error {
 	// --------------
 	// HTTP API server
 	ctx := context.Background()
-	router, err := api.BuildApiEngine(ctx, log)
+
+	componentFactory, err := components.NewComponentFactory()
+	if err != nil {
+		log.Error(err, "Failed to create component factory")
+		return err
+	}
+
+	router, err := api.BuildApiEngine(ctx, log, componentFactory)
 	if err != nil {
 		log.Error(err, "Failed to create HTTP API server.")
 		return err

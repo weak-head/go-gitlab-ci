@@ -7,6 +7,7 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"git.lothric.net/examples/go/gogin/internal/app/api/common"
 	"git.lothric.net/examples/go/gogin/internal/app/api/middleware"
 	v1 "git.lothric.net/examples/go/gogin/internal/app/api/v1"
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
@@ -20,6 +21,7 @@ import (
 func BuildApiEngine(
 	ctx context.Context,
 	log logger.Log,
+	factory common.ComponentFactory,
 ) (*gin.Engine, error) {
 
 	// We use the vanilla 'gin' router that doesn't support routing of APIs
@@ -56,15 +58,8 @@ func BuildApiEngine(
 	// that are applied to all path handlers.
 	apiGroup.Use(middleware.EnsureCorrelationId(log))
 
-	// Internal handler factory for v1
-	v1factory, err := v1.NewHandlersFactory(ctx, log)
-	if err != nil {
-		log.Error(err, "Failed to create HandlersFactory")
-		return nil, err
-	}
-
 	// v1 PathHandler
-	v1routes, err := v1.NewV1PathHandler(log, v1factory)
+	v1routes, err := v1.NewV1PathHandler(log, factory)
 	if err != nil {
 		log.Error(err, "Failed to create v1 PathHandler")
 		return nil, err

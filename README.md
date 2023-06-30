@@ -1,10 +1,10 @@
-# gogin <!-- omit from toc -->
+# GoGin GitLab CI <!-- omit from toc -->
 
 ## Table of Contents <!-- omit from toc -->
 
 - [Overview](#overview)
 - [Installation](#installation)
-  - [Create docker config for private registry access](#create-docker-config-for-private-registry-access)
+  - [Create docker config for the private registry access](#create-docker-config-for-the-private-registry-access)
   - [Add private GitLab Helm registry](#add-private-gitlab-helm-registry)
   - [Install gogin using Helm chart](#install-gogin-using-helm-chart)
 - [Troubleshooting Helm chart](#troubleshooting-helm-chart)
@@ -13,33 +13,38 @@
 
 ## Overview
 
-This is an end-to-end example of a Golang project that shows the complete GitLab CI pipeline that includes: 
+This is an end-to-end example of a simple Golang project that shows the complete GitLab CI pipeline that includes: 
 - Compiling swagger API documentation
 - Building executable
 - Executing unit tests
 - Running race detection
 - Generating code coverage report
-- Bundling docker container and publishing it to private registry
-- Bundling helm chart and publishing it to private registry
-- Publishing GitLab pages with code coverage reports
+- Bundling docker image and publishing it to the private GitLab Container Registry
+- Bundling helm chart and publishing it to the private GitLab Package Registry
+- Publishing code coverage reports to GitLab Pages
 
-This GitLab Ci supports tagging docker images based on the git tags. For example the git tag `v1.2.0` will result in the docker container with tag `1.2.0` pushed to the private container registry.
+This GitLab CI pipeline supports tagging docker images based on the git tags.
+For example the git tag `v1.2.0` will result in the docker container with tag `1.2.0` pushed to the private GitLab Container Registry.
 
 Also this example demonstrates the typical Golang project structure that covers:
-- HTTP Rest API handlers
-- Middleware handling
-- Cobra and Viper configuration
+- HTTP Rest API request handling
+- HTTP Rest API middleware handling
+- [Cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) setup
 - Swagger documentation
-- Unit tests and coverage reports
+- Examples of unit tests and coverage reports
+- Multi-stage Dockerfile
 - Production-ready Helm chart
 
 ## Installation
 
-This section explains how to install gogin using the private GitLab container registry and the private GitLab Helm chart registry:
+This section explains how to install gogin using the private GitLab Container Registry and the private GitLab Helm chart registry.
+This Readme refers to the two private resources that I use internally for my home infrastructure. These two resources are not publicly available and depend on private GitLab auth.
 - Helm Chart registry: https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable
 - Docker container registry: https://registry.lothric.net
 
-### Create docker config for private registry access
+Make sure to replace the references to these two private resources with your own links to GitLab Package Registry and GitLab Container Registry.
+
+### Create docker config for the private registry access
 
 ```bash
 export REGISTRY_USERNAME=registryUsername
@@ -79,6 +84,8 @@ helm repo update
 
 ### Install gogin using Helm chart
 
+Make sure ingress is correctly configured for your kubernetes and you have sub-domain routing.
+
 ```sh
 export DOCKER_CONFIG=ewogICAgImF1dGhzIjogewog...
 export GOGIN_DOMAIN=gogin.k8s.lothric.net
@@ -86,7 +93,7 @@ export GOGIN_DOMAIN=gogin.k8s.lothric.net
 helm upgrade \
     --install gogin \
     gogin-repo/gogin \
-    --version 0.1.0-alpha \
+    --version 0.2.0 \
     --namespace=services \
     --create-namespace \
     --set="image.registry.dockerConfig=${DOCKER_CONFIG}" \
