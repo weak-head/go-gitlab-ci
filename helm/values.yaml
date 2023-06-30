@@ -36,7 +36,7 @@ service:
 ingress:
   enabled: true
   host:
-    goginDomain: "gogin.domain.net"
+    goginDomain: "gogin.k8s.lothric.net"
   className: "public" # microk8s uses 'public' for nginx
   annotations: {}
   # tls:
