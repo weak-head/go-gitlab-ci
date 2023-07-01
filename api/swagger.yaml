@@ -147,8 +147,8 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Gogin service provides the unified gist storage
-  title: Gogin
+  description: GoGin service provides the unified gist storage
+  title: GoGin
   version: 0.2.0
 paths:
   /gists:

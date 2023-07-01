@@ -8,9 +8,10 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"git.lothric.net/examples/go/gogin/internal/app/api/middleware"
-	v1 "git.lothric.net/examples/go/gogin/internal/app/api/v1"
 	"git.lothric.net/examples/go/gogin/internal/app/api/v1/handlers"
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
+
+	v1 "git.lothric.net/examples/go/gogin/internal/app/api/v1"
 )
 
 // PathHandler defines an API Handler that could attach
@@ -27,7 +28,7 @@ type PathHandler interface {
 type ComponentFactory interface {
 
 	// CreateMetricsReporter
-	CreateMetricsReporter() (handlers.MetricsReporter, error)
+	CreateApiMetricsReporter() (handlers.ApiMetricsReporter, error)
 
 	// CreateGistsLogic
 	CreateGistsLogic() (handlers.GistsLogic, error)
@@ -97,8 +98,8 @@ func (b *apiBuilder) BuildApi(
 
 	// v1 API group is directly attached to the "/api" root
 	// so all routes are under "/api".
-	// for example for 'templates' the route is:
-	//   -> /api/templates
+	// for example for 'gists' the route is:
+	//   -> /api/gists
 	v1router, err := b.buildV1Api()
 	if err != nil {
 		log.Error(err, "Failed to create v1 API router")
@@ -115,13 +116,13 @@ func (b *apiBuilder) BuildApi(
 
 // buildV1Api creates V1 API group
 func (b *apiBuilder) buildV1Api() (PathHandler, error) {
-	log := b.log.WithField(logger.FieldFunction, "createGistsHandler")
+	log := b.log.WithField(logger.FieldFunction, "buildV1Api")
 	log.Info("Building v1 API")
 
 	// Shared metrics reporter
-	metricsReporter, err := b.factory.CreateMetricsReporter()
+	metricsReporter, err := b.factory.CreateApiMetricsReporter()
 	if err != nil {
-		log.Error(err, "Failed to create Metrics Reporter")
+		log.Error(err, "Failed to create API Metrics Reporter")
 		return nil, err
 	}
 

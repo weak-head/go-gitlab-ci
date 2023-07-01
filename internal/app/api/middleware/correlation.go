@@ -37,8 +37,7 @@ func rndCorrelationId() string {
 // API Gateway level for each incoming HTTP request from external
 // Web, Mobile or Application clients and passed in the "X-Request-Id" header,
 // so we can use this correlation id to track the entire
-// call chain between several microservices and establish reliable
-// tracing and logging for the entire Digital Platform.
+// call chain between several microservices.
 //
 // In case if correlation id is not provided in the "X-Request-Id"
 // header we are generating a new one in this middleware.
@@ -55,7 +54,7 @@ func EnsureCorrelationId(log logger.Log) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
-		log.Info("Verifying correlation header exist")
+		log.Info("Verify correlation header existence...")
 
 		// If 'X-Request-Id' header is missing,
 		// we generate it and set it

@@ -19,8 +19,8 @@ func NewComponentFactory(log logger.Log) (*componentFactory, error) {
 	}, nil
 }
 
-// CreateMetricsReporter
-func (f *componentFactory) CreateMetricsReporter() (handlers.MetricsReporter, error) {
+// CreateApiMetricsReporter
+func (f *componentFactory) CreateApiMetricsReporter() (handlers.ApiMetricsReporter, error) {
 	return metrics.NewReporter()
 }
 

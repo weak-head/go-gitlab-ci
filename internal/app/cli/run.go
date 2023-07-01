@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 
 	"git.lothric.net/examples/go/gogin/internal/app/api"
 	"git.lothric.net/examples/go/gogin/internal/app/components"
@@ -19,41 +18,49 @@ import (
 	"git.lothric.net/examples/go/gogin/internal/pkg/status"
 )
 
-// cfg is application configuration
-type cfg struct {
-	HttpPort string
-	GinMode  string
+// appConfig defines the global application configuration and
+// contains all parameters that could be specified during the
+// application startup.
+type appConfig struct {
+	NodeName    string
+	ServiceName string
 
-	LogConfig     logger.Config
-	StatusConfig  status.Config
-	MetricsConfig metrics.Config
+	Http    httpConfig
+	Log     logger.Config
+	Status  status.Config
+	Metrics metrics.Config
+}
+
+// httpConfig defines HTTP API server configuration
+type httpConfig struct {
+
+	// HttpPort is port that is used to host HTTP API server
+	HttpPort uint16
+
+	// Gin mode:
+	//  - test
+	//  - debug
+	//  - release
+	GinMode string
 }
 
 // runApp bootstraps and runs the application
-func runApp(config cfg) error {
+func runApp(config appConfig) error {
 
-	var log logger.Log
-	log, err := logger.New(config.LogConfig)
+	cleanLog, err := logger.New(config.Log)
 	if err != nil {
 		fmt.Printf("Failed to create the application logger: %s", err.Error())
 		return err
 	}
 
-	appLog := log.WithFields(logger.Fields{
-		logger.FieldNode:    viper.GetString(nodeName),
-		logger.FieldService: "gogin",
+	log := cleanLog.WithFields(logger.Fields{
+		logger.FieldNode:     config.NodeName,
+		logger.FieldService:  config.ServiceName,
+		logger.FieldPackage:  "cli",
+		logger.FieldFunction: "runApp",
 	})
 
-	log = appLog.WithFields(logger.Fields{
-		logger.FieldPackage:  "main",
-		logger.FieldFunction: "cli.run",
-	})
-
-	if config.GinMode == "release" {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		gin.SetMode(gin.DebugMode)
-	}
+	gin.SetMode(config.Http.GinMode)
 
 	// --------------
 	// Health status server
@@ -65,11 +72,11 @@ func runApp(config cfg) error {
 
 	go func(cfg status.Config) {
 		statusServer.Serve(cfg)
-	}(config.StatusConfig)
+	}(config.Status)
 
 	// --------------
 	// Prometheus metrics server
-	metricsServer, err := metrics.NewPrometheusServer(config.MetricsConfig)
+	metricsServer, err := metrics.NewPrometheusServer(config.Metrics)
 	if err != nil {
 		log.Error(err, "Failed to create the metrics server.")
 		return err
@@ -96,9 +103,13 @@ func runApp(config cfg) error {
 	}
 
 	router, err := apiBuilder.BuildApi(ctx)
+	if err != nil {
+		log.Error(err, "Failed to Build API router.")
+		return err
+	}
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", viper.GetString(httpPort)),
+		Addr:    fmt.Sprintf(":%d", config.Http.HttpPort),
 		Handler: router,
 	}
 
@@ -109,7 +120,7 @@ func runApp(config cfg) error {
 		}
 	}()
 
-	log.Info("The gogin micro-service is up and running.")
+	log.Info("The service is up and running.")
 
 	// -------------------------
 	// Wait for the app termination
@@ -119,28 +130,31 @@ func runApp(config cfg) error {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Info("Requested app termination. Waiting 5 seconds...")
+	log.Info("Requested app termination. Waiting 3 seconds...")
 
-	// Wait 5 seconds for server to terminate
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// Wait 3 seconds for server to terminate
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	// Status
+	log.Info("Gracefully terminating status server...")
 	statusServer.Stop()
 
 	// Metrics
+	log.Info("Gracefully terminating metrics server...")
 	if err := metricsServer.Stop(ctx); err != nil {
 		log.Error(err, "Failed to gracefully shutdown prometheus metrics server.")
 	}
 
 	// HTTP API
+	log.Info("Gracefully terminating API server...")
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Error(err, "Failed to gracefully shutdown HTTP API server.")
 	}
 
 	// Wait
 	<-ctx.Done()
-	log.Info("Timeout of 5 seconds has ended. GoGin exiting.")
+	log.Info("Timeout of 3 seconds has ended. Exiting.")
 
 	return nil
 }

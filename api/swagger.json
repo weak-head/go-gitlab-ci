@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Gogin service provides the unified gist storage",
-        "title": "Gogin",
+        "description": "GoGin service provides the unified gist storage",
+        "title": "GoGin",
         "contact": {},
         "version": "0.2.0"
     },

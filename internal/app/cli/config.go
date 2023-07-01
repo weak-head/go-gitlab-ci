@@ -33,10 +33,10 @@ const (
 
 // cli
 type cli struct {
-	cfg cfg
+	cfg appConfig
 }
 
-// NewCli
+// NewCli creates a new Cobra Command
 func NewCli() (*cobra.Command, error) {
 	cli := &cli{}
 	cmd := &cobra.Command{
@@ -152,24 +152,30 @@ func (c *cli) bindEnv() error {
 	return nil
 }
 
+// createConfig
 func (c *cli) createConfig() error {
 	config := &c.cfg
 
+	// Generic
+	config.NodeName = viper.GetString(nodeName)
+	config.ServiceName = "gogin"
+
 	// HTTP & Gin
-	config.HttpPort = viper.GetString(httpPort)
-	config.GinMode = viper.GetString(ginMode)
+	httpConfig := &config.Http
+	httpConfig.HttpPort = viper.GetUint16(httpPort)
+	httpConfig.GinMode = viper.GetString(ginMode)
 
 	// Log
-	logConfig := &config.LogConfig
+	logConfig := &config.Log
 	logConfig.Level = viper.GetString(logLevel)
 	logConfig.Formatter = viper.GetString(logFormatter)
 
 	// Status
-	statusConfig := &config.StatusConfig
+	statusConfig := &config.Status
 	statusConfig.RpcAddr = viper.GetString(statusRpcAddr)
 
 	// Metrics
-	metricsConfig := &config.MetricsConfig
+	metricsConfig := &config.Metrics
 	metricsConfig.Addr = viper.GetString(metricsPrometheusAddr)
 	metricsConfig.Path = viper.GetString(metricsPrometheusPath)
 

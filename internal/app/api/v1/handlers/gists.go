@@ -21,7 +21,7 @@ type GistsLogic interface {
 }
 
 // MetricsReporter is metrics reporting handler for gists APIs.
-type MetricsReporter interface {
+type ApiMetricsReporter interface {
 
 	// ApiRequestProcessed
 	ApiRequestProcessed(operation string, milliseconds float64)
@@ -34,7 +34,7 @@ type MetricsReporter interface {
 type gistsHandler struct {
 	log     logger.Log
 	logic   GistsLogic
-	metrics MetricsReporter
+	metrics ApiMetricsReporter
 }
 
 // NewGistsHandler creates a new instance of the API handler
@@ -42,7 +42,7 @@ type gistsHandler struct {
 func NewGistsHandler(
 	log logger.Log,
 	logic GistsLogic,
-	metrics MetricsReporter,
+	metrics ApiMetricsReporter,
 ) (*gistsHandler, error) {
 
 	gh := &gistsHandler{

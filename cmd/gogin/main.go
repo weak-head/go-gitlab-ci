@@ -8,9 +8,9 @@ import (
 	"git.lothric.net/examples/go/gogin/internal/app/cli"
 )
 
-//	@title			Gogin
+//	@title			GoGin
 //	@version		0.2.0
-//	@description	Gogin service provides the unified gist storage
+//	@description	GoGin service provides the unified gist storage
 //	@BasePath		/api
 func main() {
 
