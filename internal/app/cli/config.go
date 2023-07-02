@@ -11,6 +11,9 @@ import (
 )
 
 const (
+	// Service
+	serviceName = "gogin"
+
 	// Common
 	configFile = "config"
 	nodeName   = "node.name"
@@ -40,7 +43,7 @@ type cli struct {
 func NewCli() (*cobra.Command, error) {
 	cli := &cli{}
 	cmd := &cobra.Command{
-		Use:     "gogin",
+		Use:     serviceName,
 		PreRunE: cli.setupConfig,
 		RunE:    cli.run,
 	}
@@ -60,6 +63,7 @@ func setupFlags(cmd *cobra.Command) error {
 		log.Fatal(err)
 	}
 
+	// Common
 	cmd.Flags().String(configFile, "", "Path to config file.")
 	cmd.Flags().String(nodeName, hostname, "Unique server ID.")
 
@@ -84,16 +88,20 @@ func setupFlags(cmd *cobra.Command) error {
 // setupConfig reads the config file (if any), binds the environment
 // variables to the viper keys and creates the application configuration
 func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
+
+	// Try to load config from file
 	if err := c.loadConfigFile(cmd); err != nil {
 		fmt.Printf("Failed to load configuration file: %s \n", err.Error())
 		return err
 	}
 
+	// Try to load config from environment variables
 	if err := c.bindEnv(); err != nil {
 		fmt.Printf("Failed to bind environment variables: %s \n", err.Error())
 		return err
 	}
 
+	// Create and initialize application configuration
 	if err := c.createConfig(); err != nil {
 		fmt.Printf("Failed to create application configuration: %s \n", err.Error())
 		return err
@@ -102,36 +110,42 @@ func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// loadConfigFile
+// loadConfigFile loads configuration from file,
+// that could be specified by '--config' cli option.
 func (c *cli) loadConfigFile(cmd *cobra.Command) error {
-	configFile, err := cmd.Flags().GetString("config")
+	file, err := cmd.Flags().GetString(configFile)
 	if err != nil {
 		return err
 	}
 
-	if configFile != "" {
-		viper.SetConfigFile(configFile)
+	// Load config from the specified file
+	if file != "" {
+		viper.SetConfigFile(file)
 		if err = viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 				return err
 			}
 		}
-	} else {
-		viper.SetConfigName("config")
-		viper.AddConfigPath(".")
-		err := viper.ReadInConfig()
-		// Ignore failed to find configuration file
-		if err != nil && !errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			fmt.Printf("Fatal error with configuration file: %s \n", err.Error())
-			return err
-		}
+		return nil
 	}
+
+	// Search for in-place config and load it, if possible.
+	// Ignore failed to find configuration file.
+	viper.SetConfigName(configFile)
+	viper.AddConfigPath(".")
+	err = viper.ReadInConfig()
+	if err != nil && !errors.As(err, &viper.ConfigFileNotFoundError{}) {
+		fmt.Printf("Fatal error with configuration file: %s \n", err.Error())
+		return err
+	}
+
+	// We can enable watchdog for config, if required:
 	// viper.WatchConfig()
 
 	return nil
 }
 
-// bindEnv
+// bindEnv binds configuration keys to environment variables.
 func (c *cli) bindEnv() error {
 
 	// HTTP & Gin
@@ -152,13 +166,13 @@ func (c *cli) bindEnv() error {
 	return nil
 }
 
-// createConfig
+// createConfig initializes application configuration
 func (c *cli) createConfig() error {
 	config := &c.cfg
 
 	// Generic
 	config.NodeName = viper.GetString(nodeName)
-	config.ServiceName = "gogin"
+	config.ServiceName = serviceName
 
 	// HTTP & Gin
 	httpConfig := &config.Http
@@ -184,5 +198,7 @@ func (c *cli) createConfig() error {
 
 // run bootstraps and runs the application
 func (c *cli) run(cmd *cobra.Command, args []string) error {
+
+	// The configuration is already fully loaded an initialized
 	return runApp(c.cfg)
 }
