@@ -5,7 +5,8 @@ import (
 )
 
 var (
-	// TODO: comments
+
+	// requestsTotal is a total number of processed API requests.
 	requestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "requests_total",
@@ -14,7 +15,7 @@ var (
 		[]string{"operation"},
 	)
 
-	// TODO: comments
+	// requestsFailures is a total number of API request errors.
 	requestsFailures = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "requests_errors_total",
@@ -23,7 +24,7 @@ var (
 		[]string{"operation", "failure"},
 	)
 
-	// TODO: comments
+	// requestDuration is API request processing duration distributions.
 	requestDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
 			Name:       "request_durations_seconds",
@@ -33,7 +34,7 @@ var (
 		[]string{"operation"},
 	)
 
-	// TODO: comments
+	// requestDurationsHistogram is API request processing duration distributions.
 	requestDurationsHistogram = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "request_durations_histogram_seconds",

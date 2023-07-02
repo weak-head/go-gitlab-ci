@@ -11,24 +11,24 @@ var (
 	ErrNoLoggerProvided = errors.New("no logger provided")
 )
 
-// Reporter
-type Reporter struct {
+// reporter collects and reports application metrics and usage statistics.
+type reporter struct {
 	log logger.Log
 }
 
-// NewReporter
-func NewReporter(log logger.Log) (*Reporter, error) {
+// NewReporter creates a new instance of metrics reporter.
+func NewReporter(log logger.Log) (*reporter, error) {
 	if log == nil {
 		return nil, ErrNoLoggerProvided
 	}
 
-	return &Reporter{
+	return &reporter{
 		log: log,
 	}, nil
 }
 
-// ApiRequestProcessed
-func (r *Reporter) ApiRequestProcessed(operation string, milliseconds float64) {
+// ApiRequestProcessed tracks a successfully processed API request.
+func (r *reporter) ApiRequestProcessed(operation string, milliseconds float64) {
 	log := r.log.WithField(logger.FieldFunction, "ApiRequestProcessed")
 	log.Info("Api request has been processed")
 
@@ -37,8 +37,8 @@ func (r *Reporter) ApiRequestProcessed(operation string, milliseconds float64) {
 	requestsTotal.WithLabelValues(operation).Inc()
 }
 
-// ApiRequestFailed
-func (r *Reporter) ApiRequestFailed(operation string, failure string) {
+// ApiRequestFailed tracks an API request that has failed to be processed.
+func (r *reporter) ApiRequestFailed(operation string, failure string) {
 	log := r.log.WithField(logger.FieldFunction, "ApiRequestProcessed")
 	log.Info("Api request processing has failed")
 
