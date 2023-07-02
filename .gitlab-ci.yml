@@ -51,6 +51,8 @@ test-coverage-report:
     paths:
       - 'coverage/*'
   coverage: '/^total:.*statements.*?(\d+\.\d+%)$/'
+  only:
+    - main
 
 bundle-docker:
   stage: bundle
@@ -150,3 +152,5 @@ pages:
     name: public
     paths:
       - public
+  only:
+    - main
