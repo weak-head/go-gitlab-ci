@@ -35,17 +35,22 @@ func NewComponentFactory(
 
 // CreateApiMetricsReporter create a new API Metrics Reporter.
 func (f *componentFactory) CreateApiMetricsReporter() (handlers.ApiMetricsReporter, error) {
-	return metrics.NewReporter()
+	log := f.log.WithField(logger.FieldFunction, "CreateApiMetricsReporter")
+	log.Info("Creating Api Metrics Reporter")
+
+	return metrics.NewReporter(log)
 }
 
 // CreateGistsLogic creates a business logic for Gists.
 func (f *componentFactory) CreateGistsLogic() (handlers.GistsLogic, error) {
+	log := f.log.WithField(logger.FieldFunction, "CreateGistsLogic")
+	log.Info("Creating Gists logic")
 
-	reporter, err := metrics.NewReporter()
+	reporter, err := metrics.NewReporter(log)
 	if err != nil {
-		f.log.Error(err, "Failed to create business logic Metrics Reporter")
+		log.Error(err, "Failed to create business logic Metrics Reporter")
 		return nil, err
 	}
 
-	return logic.NewGistsLogic(f.log, reporter)
+	return logic.NewGistsLogic(log, reporter)
 }
