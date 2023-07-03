@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"context"
 	"errors"
 
 	"git.lothric.net/examples/go/gogin/internal/pkg/logger"
@@ -17,12 +18,13 @@ var (
 // MetricsReporter defines a metrics reporter that is used
 // to collect and report usage metrics.
 type MetricsReporter interface {
-	// TODO: define me
+	// NOTE: define me
 }
 
 // GistsLogic implements business rules for the Gists.
 type GistsLogic struct {
-	// TODO: define me
+	log      logger.Log
+	reporter MetricsReporter
 }
 
 // NewGistsLogic creates a new instance of GistsLogic that
@@ -40,5 +42,18 @@ func NewGistsLogic(
 		return nil, ErrNoReporterProvided
 	}
 
-	return &GistsLogic{}, nil
+	return &GistsLogic{
+		log:      log,
+		reporter: reporter,
+	}, nil
+}
+
+// GetGists returns the filtered list of Gists for the specified 'language'.
+func (g *GistsLogic) GetGists(ctx context.Context, language string) error {
+	log := logger.FromContext(g.log, ctx, "GetGists")
+	log.Info("Handling GetGists")
+
+	// NOTE: implement me
+
+	return nil
 }

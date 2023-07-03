@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,12 +13,19 @@ import (
 )
 
 const (
+
+	// pkg is this package for logger purposes
+	pkg = "api.v1.handlers"
+
 	// QueryLanguage is a query key that is used to specify the programming language.
 	QueryLanguage = "lang"
 )
 
 // GistsLogic is a business logic layer for gists related functionality.
 type GistsLogic interface {
+
+	// GetGists returns a filtered list of gists
+	GetGists(ctx context.Context, language string) error
 }
 
 // MetricsReporter is metrics reporting handler for gists APIs.
@@ -46,7 +54,7 @@ func NewGistsHandler(
 ) (*gistsHandler, error) {
 
 	gh := &gistsHandler{
-		log:     log.WithField(logger.FieldPackage, "handlers"),
+		log:     log.WithField(logger.FieldPackage, pkg),
 		logic:   logic,
 		metrics: metrics,
 	}
@@ -88,7 +96,7 @@ func (gh *gistsHandler) AttachTo(g *gin.RouterGroup) error {
 //	@Failure		500	{array}	models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists [get]
 func (gh *gistsHandler) getGists(c *gin.Context) {
-	log, _, _, err := helpers.ParseContext(gh.log, c, "getGists")
+	log, ctx, _, err := helpers.ParseContext(gh.log, c, "getGists")
 	if err != nil {
 		helpers.AbortWithError(c, log,
 			http.StatusInternalServerError,
@@ -100,6 +108,9 @@ func (gh *gistsHandler) getGists(c *gin.Context) {
 
 	// Extract argument
 	lang := c.Query(QueryLanguage)
+
+	// Note: just an example of the call
+	_ = gh.logic.GetGists(ctx, lang)
 
 	gistsInfo := []models.GistInfo{
 		{
