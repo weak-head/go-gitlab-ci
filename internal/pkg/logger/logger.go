@@ -8,84 +8,62 @@ import (
 )
 
 const (
-	FieldNode        = "node"
-	FieldService     = "service"
-	FieldPackage     = "package"
-	FieldFunction    = "function"
-	FieldError       = "error"
+
+	// FieldNode is a unique node name this service is running on
+	FieldNode = "node"
+
+	// FieldService is a unique name of this service
+	FieldService = "service"
+
+	// FieldPackage is a unique name of the package
+	FieldPackage = "package"
+
+	// FieldFunction is a unique name of the function in a package
+	FieldFunction = "function"
+
+	// FieldError is a unique error id
+	FieldError = "error"
+
+	// FieldCorrelation is a unique correlation id
 	FieldCorrelation = "correlationId"
 )
 
-// Config
+// Config is a logger configuration
 type Config struct {
-	// Log level: trace, debug, info, warning, error, fatal, panic
+
+	// Supported log levels:
+	// - trace
+	// - debug
+	// - info
+	// - warning
+	// - error
+	// - fatal
+	// - panic
 	Level string
 
-	// Log formatter: text, json
+	// Supported log formatters:
+	// - text
+	// - json
 	Formatter string
 }
 
-// Field
-type Field string
-
-// Fields
-type Fields map[Field]interface{}
-
-// Log
-type Log interface {
-	Trace(args ...interface{})
-	Tracef(format string, args ...interface{})
-	TraceWithFields(fields Fields, args ...interface{})
-	TracefWithFields(fields Fields, format string, args ...interface{})
-
-	Debug(args ...interface{})
-	Debugf(format string, args ...interface{})
-	DebugWithFields(fields Fields, args ...interface{})
-	DebugfWithFields(fields Fields, format string, args ...interface{})
-
-	Info(args ...interface{})
-	Infof(format string, args ...interface{})
-	InfoWithFields(fields Fields, args ...interface{})
-	InfofWithFields(fields Fields, format string, args ...interface{})
-
-	Warn(args ...interface{})
-	Warnf(format string, args ...interface{})
-	WarnWithFields(fields Fields, args ...interface{})
-	WarnfWithFields(fields Fields, format string, args ...interface{})
-
-	Error(err error, args ...interface{})
-	Errorf(err error, format string, args ...interface{})
-	ErrorWithFields(err error, fields Fields, args ...interface{})
-	ErrorfWithFields(err error, fields Fields, format string, args ...interface{})
-
-	Fatal(args ...interface{})
-	Fatalf(format string, args ...interface{})
-	FatalWithFields(fields Fields, args ...interface{})
-	FatalfWithFields(fields Fields, format string, args ...interface{})
-
-	Panic(args ...interface{})
-	Panicf(format string, args ...interface{})
-	PanicWithFields(fields Fields, args ...interface{})
-	PanicfWithFields(fields Fields, format string, args ...interface{})
-
-	WithFields(fields Fields) Log
-	WithField(field Field, value interface{}) Log
-}
-
-// log
+// log implements service logger with tracing and custom field support.
 type log struct {
 	config Config
 	logger *logrus.Logger
 	fields logrus.Fields
 }
 
-// New
-func New(config Config) (*log, error) {
+// New creates a new service logger.
+func New(config Config) (Log, error) {
+
+	// Logrus is used as the underlying logger
 	l := &log{
 		logger: logrus.New(),
 		fields: logrus.Fields{},
 	}
 
+	// Parse and apply the configuration
 	if err := l.applyConfig(config); err != nil {
 		return nil, err
 	}
@@ -93,15 +71,15 @@ func New(config Config) (*log, error) {
 	return l, nil
 }
 
-// NewNullLogger
-func NewNullLogger() (*log, *logtest.Hook) {
+// NewNullLogger creates a new discarding null logger for unit test purposes.
+func NewNullLogger() (Log, *logtest.Hook) {
 	logger, hook := logtest.NewNullLogger()
 	return &log{
 		logger: logger,
 	}, hook
 }
 
-// WithFields
+// WithFields combines this logger with a new custom fields.
 func (l *log) WithFields(fields Fields) Log {
 	return &log{
 		logger: l.logger,
@@ -109,7 +87,7 @@ func (l *log) WithFields(fields Fields) Log {
 	}
 }
 
-// WithField
+// WithField combines this logger with a new custom fields.
 func (l *log) WithField(field Field, value interface{}) Log {
 	return l.WithFields(Fields{field: value})
 }
@@ -256,6 +234,7 @@ func (l *log) applyConfig(config Config) error {
 	return nil
 }
 
+// combineFields combines existing logger fields with a new ones.
 func (l *log) combineFields(fields Fields) logrus.Fields {
 	combined := logrus.Fields{}
 
@@ -272,7 +251,7 @@ func (l *log) combineFields(fields Fields) logrus.Fields {
 	return combined
 }
 
-// getFormatter
+// getFormatter parses and creates a new log formatter.
 func getFormatter(formatter string) (logrus.Formatter, error) {
 	switch formatter {
 	case "text":
