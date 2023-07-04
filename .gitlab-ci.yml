@@ -5,7 +5,6 @@ variables:
   HELM_IMAGE: alpine/helm:3.12.1
   HELM_KUBECTL_IMAGE: dtzar/helm-kubectl:3.12.1
   HELM_CHARTMUSEUM_VERSION: v0.10.4
-  TAG_VERSION_REGEX: /^v((?P<major>0|[1-9]\d*)(\.(?P<minor>0|[1-9]\d*)(\.(?P<patch>0|[1-9]\d*))?)?)$/
 
   # ----------
   # These should be set via GitLab Pipeline variables
@@ -150,7 +149,7 @@ publish-docker-tag:
   variables:
     GIT_STRATEGY: none
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ "${TAG_VERSION_REGEX}"'
+    - if: '$CI_COMMIT_REF_NAME =~ "/^v((?P<major>0|[1-9]\d*)(\.(?P<minor>0|[1-9]\d*)(\.(?P<patch>0|[1-9]\d*))?)?)$/"'
       when: always
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -180,7 +179,7 @@ deploy-staging:
   dependencies:
     - publish-docker-tag
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ "${TAG_VERSION_REGEX}"'
+    - if: '$CI_COMMIT_REF_NAME =~ "/^v((?P<major>0|[1-9]\d*)(\.(?P<minor>0|[1-9]\d*)(\.(?P<patch>0|[1-9]\d*))?)?)$/"'
       when: always
   script:
     # --------
