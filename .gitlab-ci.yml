@@ -20,6 +20,10 @@ variables:
     description: "Domain where the application is deployed"
   APPLICATION_KUBERNETES_NAMESPACE:
     description: "Kubernetes namespace that the application should be deployed to"
+  GITLAB_REGISTRY_USER_NAME:
+    description: "Persistent GitLab user name to pull image from the GitLab container registry"
+  GITLAB_REGISTRY_USER_TOKEN:
+    description: "Persistent GitLab user token to pull image from the GitLab container registry"
 
 stages:
   - compile
@@ -193,7 +197,7 @@ deploy-staging:
     # --------
     # Create Docker Auth configuration
     - >
-      export DOCKER_CONFIG_AUTH=$(echo -n "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}" | base64 -w 0)
+      export DOCKER_CONFIG_AUTH=$(echo -n "${GITLAB_REGISTRY_USER_NAME}:${GITLAB_REGISTRY_USER_TOKEN}" | base64 -w 0)
     - >
       export DOCKER_CONFIG_RAW=$(echo -n "{\"auths\": { \"${CI_REGISTRY}\": { \"auth\": \"${DOCKER_CONFIG_AUTH}\" } } }" )
     - >

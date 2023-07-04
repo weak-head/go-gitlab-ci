@@ -47,8 +47,12 @@ In order to have the deployment automation, the following environment variables 
 - `KUBERNETES_USER_TOKEN` - Kubernetes user token.
 - `APPLICATION_DOMAIN` - The domain the application is deployed to.
 - `APPLICATION_KUBERNETES_NAMESPACE` - The Kubernetes namespace the application is deployed to.
+- `GITLAB_REGISTRY_USER_NAME` - Persistent GitLab user name to pull image from the GitLab container registry.
+- `GITLAB_REGISTRY_USER_TOKEN` - Persistent GitLab user token to pull image from the GitLab container registry. 
 
 Refer to the [gitlab-ci.yml](./.gitlab-ci.yml) for the details.
+
+The deployment account that is specified by `GITLAB_REGISTRY_USER_NAME` and `GITLAB_REGISTRY_USER_TOKEN` could be crated via `Settings -> Repository -> Deploy tokens` with `read_registry` scope.
 
 ## Installation
 
