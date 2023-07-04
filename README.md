@@ -45,10 +45,11 @@ In order to have the deployment automation, the following environment variables 
 - `KUBERNETES_CERTIFICATE_AUTHORITY_DATA` - The CA configuration for the Kubernetes cluster.
 - `KUBERNETES_USER_NAME` - Kubernetes user name.
 - `KUBERNETES_USER_TOKEN` - Kubernetes user token.
-- `APPLICATION_DOMAIN` - The domain the application is deployed to.
-- `APPLICATION_KUBERNETES_NAMESPACE` - The Kubernetes namespace the application is deployed to.
+- `GITLAB_REGISTRY` - GitLab container registry that Kubernetes should use for auth.
 - `GITLAB_REGISTRY_USER_NAME` - Persistent GitLab user name to pull image from the GitLab container registry.
 - `GITLAB_REGISTRY_USER_TOKEN` - Persistent GitLab user token to pull image from the GitLab container registry. 
+- `APPLICATION_DOMAIN` - The domain the application is deployed to.
+- `APPLICATION_KUBERNETES_NAMESPACE` - The Kubernetes namespace the application is deployed to.
 
 Refer to the [gitlab-ci.yml](./.gitlab-ci.yml) for the details.
 
@@ -66,16 +67,17 @@ Make sure to replace the references to these two private resources with your own
 ### Docker config for the access to the private GitLab container registry
 
 ```bash
-export REGISTRY_USERNAME=registryUsername
-export REGISTRY_PASSWORD=registryPassword 
+export GITLAB_REGISTRY=https://registry.lothric.net
+export GITLAB_REGISTRY_USER_NAME=registryUserName
+export GITLAB_REGISTRY_USER_TOKEN=registryUserToken
 
 # Create base64 encoded docker auth config
 export DOCKER_CONFIG=$({
 cat << EOF
 {
     "auths": {
-        "https://registry.lothric.net":{
-            "auth":"`echo -n "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" | base64 -w 0`"
+        "${GITLAB_REGISTRY}":{
+            "auth":"`echo -n "${GITLAB_REGISTRY_USER_NAME}:${GITLAB_REGISTRY_USER_TOKEN}" | base64 -w 0`"
         }
     }
 }
@@ -136,7 +138,7 @@ helm template gogin ./helm
 ### Use local version of Helm chart to deploy gogin
 
 ```sh
-export DOCKER_CONFIG=ewogICAgImF1dGhzIjogewog...
+export DOCKER_CONFIG=ewodGhwog...
 export GOGIN_DOMAIN=gogin.k8s.lothric.net
 
 helm upgrade \

@@ -7,7 +7,8 @@ variables:
   HELM_CHARTMUSEUM_VERSION: v0.10.4
 
   # ----------
-  # These should be set via GitLab Pipeline variables
+  # These should be configured via GitLab Pipeline variables 
+  # for the support of automatic deployments
   KUBERNETES_SERVER:
     description: "Remote k8s server address"
   KUBERNETES_CERTIFICATE_AUTHORITY_DATA:
@@ -16,14 +17,16 @@ variables:
     description: "K8s user name"
   KUBERNETES_USER_TOKEN:
     description: "K8s user token"
-  APPLICATION_DOMAIN:
-    description: "Domain where the application is deployed"
-  APPLICATION_KUBERNETES_NAMESPACE:
-    description: "Kubernetes namespace that the application should be deployed to"
+  GITLAB_REGISTRY:
+    description: "GitLab container registry that Kubernetes should use for auth"
   GITLAB_REGISTRY_USER_NAME:
     description: "Persistent GitLab user name to pull image from the GitLab container registry"
   GITLAB_REGISTRY_USER_TOKEN:
     description: "Persistent GitLab user token to pull image from the GitLab container registry"
+  APPLICATION_DOMAIN:
+    description: "Domain where the application is deployed"
+  APPLICATION_KUBERNETES_NAMESPACE:
+    description: "Kubernetes namespace that the application should be deployed to"
 
 stages:
   - compile
@@ -199,7 +202,7 @@ deploy-staging:
     - >
       export DOCKER_CONFIG_AUTH=$(echo -n "${GITLAB_REGISTRY_USER_NAME}:${GITLAB_REGISTRY_USER_TOKEN}" | base64 -w 0)
     - >
-      export DOCKER_CONFIG_RAW=$(echo -n "{\"auths\": { \"${CI_REGISTRY}\": { \"auth\": \"${DOCKER_CONFIG_AUTH}\" } } }" )
+      export DOCKER_CONFIG_RAW=$(echo -n "{\"auths\": { \"${GITLAB_REGISTRY}\": { \"auth\": \"${DOCKER_CONFIG_AUTH}\" } } }" )
     - >
       export DOCKER_CONFIG=$(echo -n ${DOCKER_CONFIG_RAW} | base64 -w 0)
 
