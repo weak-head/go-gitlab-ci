@@ -3,6 +3,24 @@ variables:
   GOLANG_IMAGE: golang:1.20
   DOCKER_IMAGE: docker:24
   HELM_IMAGE: alpine/helm:3.12.1
+  HELM_KUBECTL_IMAGE: dtzar/helm-kubectl:3.12.1
+  HELM_CHARTMUSEUM_VERSION: v0.10.4
+  TAG_VERSION_REGEX: /^v((?P<major>0|[1-9]\d*)(\.(?P<minor>0|[1-9]\d*)(\.(?P<patch>0|[1-9]\d*))?)?)$/
+
+  # ----------
+  # These should be set via GitLab Pipeline variables
+  KUBERNETES_SERVER:
+    description: "Remote k8s server address"
+  KUBERNETES_CERTIFICATE_AUTHORITY_DATA:
+    description: "K8s certificate authority data"
+  KUBERNETES_USER_NAME:
+    description: "K8s user name"
+  KUBERNETES_USER_TOKEN:
+    description: "K8s user token"
+  APPLICATION_DOMAIN:
+    description: "Domain where the application is deployed"
+  APPLICATION_KUBERNETES_NAMESPACE:
+    description: "Kubernetes namespace that the application should be deployed to"
 
 stages:
   - compile
@@ -10,6 +28,7 @@ stages:
   - test
   - bundle
   - publish
+  - deploy
 
 compile-swagger-docs:
   stage: compile
@@ -99,7 +118,7 @@ publish-helm:
       --password ${CI_REGISTRY_PASSWORD}
       ${CI_PROJECT_NAME} 
       ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable
-    - helm plugin install --version=v0.10.4 https://github.com/chartmuseum/helm-push.git
+    - helm plugin install --version=${HELM_CHARTMUSEUM_VERSION} https://github.com/chartmuseum/helm-push.git
   script:
     - helm cm-push ${CI_PROJECT_NAME}*.tgz ${CI_PROJECT_NAME}
   only:
@@ -131,7 +150,7 @@ publish-docker-tag:
   variables:
     GIT_STRATEGY: none
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ "/^v((?P<major>0|[1-9]\d*)(\.(?P<minor>0|[1-9]\d*)(\.(?P<patch>0|[1-9]\d*))?)?)$/"'
+    - if: '$CI_COMMIT_REF_NAME =~ "${TAG_VERSION_REGEX}"'
       when: always
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -154,3 +173,49 @@ pages:
       - public
   only:
     - main
+
+deploy-staging:
+  stage: deploy
+  image: $HELM_KUBECTL_IMAGE
+  dependencies:
+    - publish-docker-tag
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ "${TAG_VERSION_REGEX}"'
+      when: always
+  script:
+    # --------
+    # Kubeconfig for the remote k8s cluster
+    - kubectl config set-cluster k8s --server="${KUBERNETES_SERVER}"
+    - kubectl config set clusters.k8s.certificate-authority-data ${KUBERNETES_CERTIFICATE_AUTHORITY_DATA}
+    - kubectl config set-credentials ${KUBERNETES_USER_NAME} --token="${KUBERNETES_USER_TOKEN}"
+    - kubectl config set-context default --cluster=k8s --user=${KUBERNETES_USER_NAME}
+    - kubectl config use-context default
+
+    # --------
+    # Create Docker Auth configuration
+    - >
+      export DOCKER_CONFIG_AUTH=$(echo -n "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}" | base64 -w 0)
+    - >
+      export DOCKER_CONFIG_RAW=$(echo -n "{\"auths\": { \"${CI_REGISTRY}\": { \"auth\": \"${DOCKER_CONFIG_AUTH}\" } } }" )
+    - >
+      export DOCKER_CONFIG=$(echo -n ${DOCKER_CONFIG_RAW} | base64 -w 0)
+
+    # --------
+    # GitLab Helm repository
+    - >
+      helm repo add 
+      --username ${CI_REGISTRY_USER}
+      --password ${CI_REGISTRY_PASSWORD}
+      ${CI_PROJECT_NAME} 
+      ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable
+
+    # --------
+    # Deploy to Kubernetes
+    - >
+      helm upgrade
+      --install ${CI_PROJECT_NAME}
+      ${CI_PROJECT_NAME}/${CI_PROJECT_NAME}
+      --namespace=${APPLICATION_KUBERNETES_NAMESPACE}
+      --create-namespace
+      --set="image.registry.dockerConfig=${DOCKER_CONFIG}"
+      --set="ingress.host.goginDomain=${APPLICATION_DOMAIN}"

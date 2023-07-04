@@ -51,17 +51,17 @@ export REGISTRY_USERNAME=registryUsername
 export REGISTRY_PASSWORD=registryPassword 
 
 # Create base64 encoded docker auth config
-{
+export DOCKER_CONFIG=$({
 cat << EOF
 {
     "auths": {
         "https://registry.lothric.net":{
-            "auth":"`echo -n "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" | base64`"
+            "auth":"`echo -n "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" | base64 -w 0`"
         }
     }
 }
 EOF
-} | base64
+} | base64 -w 0)
 ```
 
 Use the output as `image.registry.dockerConfig` value. This will allow pulling docker image from the GitLab container registry using the gogin service account.
