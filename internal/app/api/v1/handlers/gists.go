@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -96,6 +98,7 @@ func (gh *gistsHandler) AttachTo(g *gin.RouterGroup) error {
 //	@Failure		500	{array}	models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists [get]
 func (gh *gistsHandler) getGists(c *gin.Context) {
+	defer timer(gh.metrics, "get_gists")()
 	log, ctx, _, err := helpers.ParseContext(gh.log, c, "getGists")
 	if err != nil {
 		helpers.AbortWithError(c, log,
@@ -111,6 +114,9 @@ func (gh *gistsHandler) getGists(c *gin.Context) {
 
 	// Note: just an example of the call
 	_ = gh.logic.GetGists(ctx, lang)
+
+	// Simulate processing
+	time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)+10))
 
 	gistsInfo := []models.GistInfo{
 		{
@@ -142,6 +148,7 @@ func (gh *gistsHandler) getGists(c *gin.Context) {
 //	@Failure		500	{array}		models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists [post]
 func (gh *gistsHandler) postGist(c *gin.Context) {
+	defer timer(gh.metrics, "post_gists")()
 	log, _, _, err := helpers.ParseContext(gh.log, c, "postGist")
 	if err != nil {
 		helpers.AbortWithError(c, log,
@@ -184,6 +191,7 @@ func (gh *gistsHandler) postGist(c *gin.Context) {
 //	@Failure	500	{array}		models.Error		"The service has encountered unexpected error that it was not able to handle."
 //	@Router		/gists/{id} [get]
 func (gh *gistsHandler) getGist(c *gin.Context) {
+	defer timer(gh.metrics, "get_gist")()
 	log, _, _, err := helpers.ParseContext(gh.log, c, "getGist")
 	if err != nil {
 		helpers.AbortWithError(c, log,
@@ -226,6 +234,7 @@ func (gh *gistsHandler) getGist(c *gin.Context) {
 //	@Failure	500	{array}		models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router		/gists/{id} [put]
 func (gh *gistsHandler) putGist(c *gin.Context) {
+	defer timer(gh.metrics, "put_gist")()
 	log, _, _, err := helpers.ParseContext(gh.log, c, "putGist")
 	if err != nil {
 		helpers.AbortWithError(c, log,
@@ -270,6 +279,7 @@ func (gh *gistsHandler) putGist(c *gin.Context) {
 //	@Failure		500	{array}		models.Error	"The service has encountered unexpected error that it was not able to handle."
 //	@Router			/gists/{id} [delete]
 func (gh *gistsHandler) deleteGist(c *gin.Context) {
+	defer timer(gh.metrics, "delete_gist")()
 	log, _, _, err := helpers.ParseContext(gh.log, c, "deleteGist")
 	if err != nil {
 		helpers.AbortWithError(c, log,
@@ -292,4 +302,12 @@ func (gh *gistsHandler) deleteGist(c *gin.Context) {
 
 	// Return result
 	c.AbortWithStatusJSON(http.StatusNoContent, gistInfo)
+}
+
+// timer measures api request processing time
+func timer(reporter ApiMetricsReporter, operation string) func() {
+	start := time.Now()
+	return func() {
+		reporter.ApiRequestProcessed(operation, float64(time.Since(start).Milliseconds()))
+	}
 }

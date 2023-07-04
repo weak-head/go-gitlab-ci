@@ -39,7 +39,8 @@ var (
 		prometheus.HistogramOpts{
 			Name: "request_durations_histogram_seconds",
 			Help: "API request processing duration distributions.",
-			// Buckets: prometheus.LinearBuckets(normMean-5*normDomain, .5*normDomain, 20),
+			// Start at 10 milliseconds, add 20 buckets, 10 milliseconds each
+			Buckets: prometheus.LinearBuckets(0.01, 0.01, 20),
 		},
 		[]string{"operation"},
 	)

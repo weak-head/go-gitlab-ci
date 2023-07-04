@@ -11,6 +11,7 @@ import (
 
 // Config is a prometheus server configuration.
 type Config struct {
+
 	// Addr is endpoint of the prometheus metrics server.
 	// For example: ":8880"
 	Addr string

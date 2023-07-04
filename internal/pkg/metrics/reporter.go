@@ -7,6 +7,7 @@ import (
 )
 
 var (
+
 	// ErrNoLoggerProvided happens when logger is not provided.
 	ErrNoLoggerProvided = errors.New("no logger provided")
 )
@@ -32,16 +33,16 @@ func (r *reporter) ApiRequestProcessed(operation string, milliseconds float64) {
 	log := r.log.WithField(logger.FieldFunction, "ApiRequestProcessed")
 	log.Info("Api request has been processed")
 
-	requestDuration.WithLabelValues(operation).Observe(milliseconds)
-	requestDurationsHistogram.WithLabelValues(operation).Observe(milliseconds)
+	seconds := milliseconds / 1000
+	requestDuration.WithLabelValues(operation).Observe(seconds)
+	requestDurationsHistogram.WithLabelValues(operation).Observe(seconds)
 	requestsTotal.WithLabelValues(operation).Inc()
 }
 
 // ApiRequestFailed tracks an API request that has failed to be processed.
 func (r *reporter) ApiRequestFailed(operation string, failure string) {
-	log := r.log.WithField(logger.FieldFunction, "ApiRequestProcessed")
+	log := r.log.WithField(logger.FieldFunction, "ApiRequestFailed")
 	log.Info("Api request processing has failed")
 
-	requestsTotal.WithLabelValues(operation).Inc()
 	requestsFailures.WithLabelValues(operation, failure).Inc()
 }
