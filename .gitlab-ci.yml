@@ -223,5 +223,6 @@ deploy-staging:
       ${CI_PROJECT_NAME}/${CI_PROJECT_NAME}
       --namespace=${APPLICATION_KUBERNETES_NAMESPACE}
       --create-namespace
+      --set="image.tag=${CI_COMMIT_REF_NAME:1}"
       --set="image.registry.dockerConfig=${DOCKER_CONFIG}"
       --set="ingress.host.goginDomain=${APPLICATION_DOMAIN}"

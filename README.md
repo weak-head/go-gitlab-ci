@@ -5,9 +5,9 @@
 - [Overview](#overview)
 - [GitLab CI/CD setup](#gitlab-cicd-setup)
 - [Installation](#installation)
-  - [Docker config for the access to the private GitLab container registry](#docker-config-for-the-access-to-the-private-gitlab-container-registry)
-  - [Add private GitLab Helm registry](#add-private-gitlab-helm-registry)
-  - [Install GoGin using Helm chart](#install-gogin-using-helm-chart)
+  - [Access to private GitLab Container registry](#access-to-private-gitlab-container-registry)
+  - [Access to private GitLab Helm registry](#access-to-private-gitlab-helm-registry)
+  - [Install GoGin](#install-gogin)
 - [Troubleshooting Helm chart](#troubleshooting-helm-chart)
   - [Get rendered Helm chart template](#get-rendered-helm-chart-template)
   - [Use local version of Helm chart to deploy gogin](#use-local-version-of-helm-chart-to-deploy-gogin)
@@ -64,9 +64,10 @@ This Readme refers to the two private resources that I use internally for my hom
 
 Make sure to replace the references to these two private resources with your own links to GitLab Package Registry and GitLab Container Registry.
 
-### Docker config for the access to the private GitLab container registry
+### Access to private GitLab Container registry
 
 ```bash
+# GitLab: Settings -> Repository -> Deploy tokens
 export GITLAB_REGISTRY=https://registry.lothric.net
 export GITLAB_REGISTRY_USER_NAME=registryUserName
 export GITLAB_REGISTRY_USER_TOKEN=registryUserToken
@@ -85,31 +86,32 @@ EOF
 } | base64 -w 0)
 ```
 
-Use the output as `image.registry.dockerConfig` value. This will allow pulling docker image from the GitLab container registry using the gogin service account.
+This value is use as the `image.registry.dockerConfig` Helm chart value. This will allow pulling docker image from the GitLab container registry using the service account.
 
-### Add private GitLab Helm registry
+### Access to private GitLab Helm registry
 
 ```sh
 # GitLab: Settings -> Repository -> Deploy tokens
-export GITLAB_DEPLOYTOKEN_USERNAME=deploymentUsername
-export GITLAB_DEPLOYTOKEN_SECRET=deploymentSecretKey
+export GITLAB_HELM_REGISTRY=https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable
+export GITLAB_HELM_USER_NAME=deploymentUserName
+export GITLAB_HELM_USER_TOKEN=deploymentUserToken
 
 helm repo add \
-    --username ${GITLAB_DEPLOYTOKEN_USERNAME} \
-    --password ${GITLAB_DEPLOYTOKEN_SECRET} \
+    --username ${GITLAB_HELM_USER_NAME} \
+    --password ${GITLAB_HELM_USER_TOKEN} \
     gogin-repo \
-    https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable
+    ${GITLAB_HELM_REGISTRY}
 
 helm repo update
 ```
 
-### Install GoGin using Helm chart
+### Install GoGin
 
 Make sure ingress is correctly configured for your kubernetes and you have sub-domain routing.
 
 ```sh
 export DOCKER_CONFIG=ewCAogog...
-export GOGIN_DOMAIN=gogin.k8s.lothric.net
+export APPLICATION_DOMAIN=gogin.k8s.lothric.net
 
 helm upgrade \
     --install gogin \
@@ -118,7 +120,7 @@ helm upgrade \
     --namespace=services \
     --create-namespace \
     --set="image.registry.dockerConfig=${DOCKER_CONFIG}" \
-    --set="ingress.host.goginDomain=${GOGIN_DOMAIN}"
+    --set="ingress.host.goginDomain=${APPLICATION_DOMAIN}"
 
 helm uninstall \
     --namespace=services \
@@ -139,7 +141,7 @@ helm template gogin ./helm
 
 ```sh
 export DOCKER_CONFIG=ewodGhwog...
-export GOGIN_DOMAIN=gogin.k8s.lothric.net
+export APPLICATION_DOMAIN=gogin.k8s.lothric.net
 
 helm upgrade \
     --install gogin \
@@ -147,7 +149,7 @@ helm upgrade \
     --namespace=services \
     --create-namespace \
     --set="image.registry.dockerConfig=${DOCKER_CONFIG}" \
-    --set="ingress.host.goginDomain=${GOGIN_DOMAIN}"
+    --set="ingress.host.goginDomain=${APPLICATION_DOMAIN}"
 
 helm uninstall \
     --namespace=services \
