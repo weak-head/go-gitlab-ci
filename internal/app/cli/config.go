@@ -150,7 +150,7 @@ func (c *cli) bindEnv() error {
 
 	// HTTP & Gin
 	viper.BindEnv(httpPort, "HTTP_PORT")
-	viper.BindEnv(ginMode, "GIN_MODE")
+	viper.BindEnv(ginMode, "HTTP_GIN_MODE")
 
 	// Log
 	viper.BindEnv(logLevel, "LOG_LEVEL")
