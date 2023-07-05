@@ -1,84 +1,89 @@
-# GoGin GitLab CI <!-- omit from toc -->
+# Go GitLab CI/CD <!-- omit from toc -->
 
 ## Table of Contents <!-- omit from toc -->
 
 - [Overview](#overview)
 - [GitLab CI/CD setup](#gitlab-cicd-setup)
 - [Installation](#installation)
-  - [Access to private GitLab Container registry](#access-to-private-gitlab-container-registry)
-  - [Access to private GitLab Helm registry](#access-to-private-gitlab-helm-registry)
-  - [Install GoGin](#install-gogin)
-- [Troubleshooting Helm chart](#troubleshooting-helm-chart)
-  - [Get rendered Helm chart template](#get-rendered-helm-chart-template)
-  - [Use local version of Helm chart to deploy gogin](#use-local-version-of-helm-chart-to-deploy-gogin)
+  - [Configure GitLab Container registry](#configure-gitlab-container-registry)
+  - [Configure GitLab Helm registry](#configure-gitlab-helm-registry)
+  - [Deploy to Kubernetes](#deploy-to-kubernetes)
+- [Building and testing](#building-and-testing)
+- [Troubleshooting](#troubleshooting)
+  - [Render Helm template](#render-helm-template)
+  - [Deploy using local Helm template](#deploy-using-local-helm-template)
+- [CLI usage](#cli-usage)
+  - [Options](#options)
 
 ## Overview
 
-This is an end-to-end example of a simple Golang project that shows the complete GitLab CI pipeline that includes: 
-- Compiling swagger API documentation
+This is a simple Go service with the complete end-to-end GitLab CI/CD pipeline that includes: 
+- Compiling API documentation
 - Building executable
-- Executing unit tests
-- Running race detection
+- Running unit tests and race detection
 - Generating code coverage report
+- Publishing code coverage reports to GitLab Pages
 - Bundling docker image and publishing it to the private GitLab Container Registry
 - Bundling helm chart and publishing it to the private GitLab Package Registry
-- Publishing code coverage reports to GitLab Pages
-- Deploying the application to Kubernetes cluster using Helm chart.
+- Deploying the application on tag to a configured Kubernetes cluster
 
-This GitLab CI pipeline supports tagging docker images based on the git tags.
-For example the git tag `v1.2.0` will result in the docker container with tag `1.2.0` pushed to the private GitLab Container Registry and the application deployed to Kubernetes.
+This GitLab CI pipeline tags docker images based on the git tags.
+For example the git tag `v1.2.0` will result in a docker container with tag `1.2.0` pushed to the private GitLab Container Registry and the application deployed to Kubernetes (using this docker container).
 
-Also this example demonstrates the typical Go project structure that covers:
-- HTTP Rest API request handling
-- HTTP Rest API middleware handling
-- [Cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) setup
-- Swagger documentation
-- Example of simple unit tests
-- Code coverage reports
+Also this example demonstrates the typical Go project structure that includes:
+- [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.com/spf13/viper) setup and configuration
+- HTTP REST API request and middleware handling using [Gin](https://github.com/gin-gonic/gin)
+- RESTful API documentation using [swag](https://github.com/swaggo/swag) and [gin-swagger](https://github.com/swaggo/gin-swagger)
+- gRPC status and health check using [grpc-health-probe](https://github.com/grpc-ecosystem/grpc-health-probe)
+- Customized logger with support of custom fields using [logrus](https://github.com/sirupsen/logrus)
+- Prometheus metrics using [client_golang](https://github.com/prometheus/client_golang)
+- Simple unit tests and code coverage reports
 - Multi-stage Dockerfile
-- Production-ready Helm chart
+- Deployment-ready Helm chart
 
 ## GitLab CI/CD setup
 
 In order to have the deployment automation, the following environment variables should be set via `Settings -> CI/CD -> Variables` on GitLab side:
-- `KUBERNETES_SERVER` - The endpoint to the Kubernetes API for the cluster.
+- `KUBERNETES_SERVER` - The endpoint to the Kubernetes API.
 - `KUBERNETES_CERTIFICATE_AUTHORITY_DATA` - The CA configuration for the Kubernetes cluster.
 - `KUBERNETES_USER_NAME` - Kubernetes user name.
 - `KUBERNETES_USER_TOKEN` - Kubernetes user token.
 - `GITLAB_REGISTRY` - GitLab container registry that Kubernetes should use for auth.
 - `GITLAB_REGISTRY_USER_NAME` - Persistent GitLab user name to pull image from the GitLab container registry.
 - `GITLAB_REGISTRY_USER_TOKEN` - Persistent GitLab user token to pull image from the GitLab container registry. 
-- `APPLICATION_DOMAIN` - The domain the application is deployed to.
+- `APPLICATION_DOMAIN` - The FQDN the application is deployed to.
 - `APPLICATION_KUBERNETES_NAMESPACE` - The Kubernetes namespace the application is deployed to.
 
-Refer to the [gitlab-ci.yml](./.gitlab-ci.yml) for the details.
+Refer to the [gitlab-ci.yml](./.gitlab-ci.yml) for the configured GitLab CI/CD steps and details.
 
-The deployment account that is specified by `GITLAB_REGISTRY_USER_NAME` and `GITLAB_REGISTRY_USER_TOKEN` could be crated via `Settings -> Repository -> Deploy tokens` with `read_registry` scope.
+The deployment account that (`GITLAB_REGISTRY_USER_NAME` and `GITLAB_REGISTRY_USER_TOKEN`) could be crated via `Settings -> Repository -> Deploy tokens`. It should have the `read_registry` scope.
 
 ## Installation
 
-This section explains how to install gogin using the private GitLab Container Registry and the private GitLab Helm chart registry.
-This Readme refers to the two private resources that I use internally for my home infrastructure. These two resources are not publicly available and depend on private GitLab auth.
-- Helm Chart registry: https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable
-- Docker container registry: https://registry.lothric.net
+This Readme refers to the two private resources that I use internally for my home infrastructure.  
+These two resources are not publicly available and require private GitLab authentication:  
+- GitLab Package registry ( https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable )
+- GitLab Container registry ( https://registry.lothric.net )
 
-Make sure to replace the references to these two private resources with your own links to GitLab Package Registry and GitLab Container Registry.
+Make sure to replace the references to these two private resources with your own links.
 
-### Access to private GitLab Container registry
+### Configure GitLab Container registry
+
+This docker configuration is used by Kubernetes to pull a docker image from the private GitLab Container registry.
 
 ```bash
 # GitLab: Settings -> Repository -> Deploy tokens
-export GITLAB_REGISTRY=https://registry.lothric.net
-export GITLAB_REGISTRY_USER_NAME=registryUserName
-export GITLAB_REGISTRY_USER_TOKEN=registryUserToken
+export GITLAB_CONTAINER_REGISTRY=https://registry.lothric.net
+export GITLAB_CONTAINER_REGISTRY_USER_NAME=registryUserName
+export GITLAB_CONTAINER_REGISTRY_USER_TOKEN=registryUserToken
 
 # Create base64 encoded docker auth config
 export DOCKER_CONFIG=$({
 cat << EOF
 {
     "auths": {
-        "${GITLAB_REGISTRY}":{
-            "auth":"`echo -n "${GITLAB_REGISTRY_USER_NAME}:${GITLAB_REGISTRY_USER_TOKEN}" | base64 -w 0`"
+        "${GITLAB_CONTAINER_REGISTRY}":{
+            "auth":"`echo -n "${GITLAB_CONTAINER_REGISTRY_USER_NAME}:${GITLAB_CONTAINER_REGISTRY_USER_TOKEN}" | base64 -w 0`"
         }
     }
 }
@@ -86,9 +91,11 @@ EOF
 } | base64 -w 0)
 ```
 
-This value is use as the `image.registry.dockerConfig` Helm chart value. This will allow pulling docker image from the GitLab container registry using the service account.
+Use this value for the `image.registry.dockerConfig` in the Helm chart.
 
-### Access to private GitLab Helm registry
+### Configure GitLab Helm registry
+
+This is setup and connection to the private GitLab Helm chart registry.
 
 ```sh
 # GitLab: Settings -> Repository -> Deploy tokens
@@ -105,9 +112,9 @@ helm repo add \
 helm repo update
 ```
 
-### Install GoGin
+### Deploy to Kubernetes
 
-Make sure ingress is correctly configured for your kubernetes and you have sub-domain routing.
+Make sure ingress is correctly configured on your Kubernetes cluster and you have sub-domain routing rules for the specified application domain.
 
 ```sh
 export DOCKER_CONFIG=ewCAogog...
@@ -127,17 +134,35 @@ helm uninstall \
     gogin
 ```
 
-## Troubleshooting Helm chart
+## Building and testing
 
-This is how you can troubleshoot the helm chart and play with it locally.
-
-### Get rendered Helm chart template
-
+Run `make help` for the list of available commands. The most useful commands are the following:
 ```sh
-helm template gogin ./helm
+# Generate OpenAPI documentation
+make swagger
+
+# Create executable
+make build
+
+# Run unit tests
+make test
+
+# Generate code coverage report
+make coverage
 ```
 
-### Use local version of Helm chart to deploy gogin
+## Troubleshooting
+
+This is how you can troubleshoot, test and verify the helm template locally.
+
+### Render Helm template
+
+```sh
+helm template \
+    gogin ./helm
+```
+
+### Deploy using local Helm template
 
 ```sh
 export DOCKER_CONFIG=ewodGhwog...
@@ -154,4 +179,23 @@ helm upgrade \
 helm uninstall \
     --namespace=services \
     gogin
+```
+
+## CLI usage
+
+This command could be used to start the application locally.
+> `gogin [flags]`
+
+### Options
+```
+      --config string                    Path to config file.
+  -h, --help                             help for gogin
+      --http.gin.mode string             Gin mode. (default "release")
+      --http.port string                 HTTP API port. (default "8080")
+      --log.formatter string             Log formatter. (default "json")
+      --log.level string                 Log level. (default "info")
+      --metrics.prometheus.addr string   HTTP address of prometheus metrics endpoint. (default ":8880")
+      --metrics.prometheus.path string   HTTP URL endpoint of prometheus metrics endpoint. (default "/metrics")
+      --node.name string                 Unique server ID.
+      --status.rpc.addr string           Rpc address of status server. (default ":8400")
 ```

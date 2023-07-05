@@ -6,7 +6,7 @@ GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
 
 .PHONY: dep swagger lint test race msan coverage coverhtml build clean help
 
-dep: ## Get the dependencies
+dep: ## Install dependencies
 	@go get -v -d ./...
 	@go get -u golang.org/x/lint/golint
 	@go install github.com/swaggo/swag/cmd/swag@latest
