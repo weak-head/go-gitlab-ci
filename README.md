@@ -1,5 +1,11 @@
 # Go GitLab CI/CD <!-- omit from toc -->
 
+[![go1.20](https://img.shields.io/badge/Go-1.20-00ADD8.svg)](https://go.dev/dl/)
+[![gitlab](https://img.shields.io/badge/GitLab-CI/CD-fc6d27.svg)](https://docs.gitlab.com/ee/ci/)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.0-84e92d.svg)](https://swagger.io/specification/v2/)
+[![docker](https://img.shields.io/badge/Docker-24-0db7ed.svg)](https://docs.docker.com/engine/release-notes/24.0/)
+[![helm3](https://img.shields.io/badge/Helm-3.12-0f1689.svg)](https://helm.sh/)
+
 ## Table of Contents <!-- omit from toc -->
 
 - [Overview](#overview)
