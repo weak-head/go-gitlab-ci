@@ -27,14 +27,13 @@ This is a simple Go service with the complete end-to-end GitLab CI/CD pipeline t
 - Compiling API documentation
 - Building executable
 - Running unit tests and race detection
-- Generating code coverage report
-- Publishing code coverage reports to GitLab Pages
+- Generating code coverage report and publishing it to GitLab Pages
 - Bundling docker image and publishing it to the private GitLab Container Registry
 - Bundling helm chart and publishing it to the private GitLab Package Registry
 - Deploying the application on tag to a configured Kubernetes cluster
 
 This GitLab CI pipeline tags docker images based on the git tags.
-For example the git tag `v1.2.0` will result in a docker container with tag `1.2.0` pushed to the private GitLab Container Registry and the application deployed to Kubernetes (using this docker container).
+For example the git tag `v1.2.0` will result in a docker container with tag `1.2.0` pushed to the private GitLab Container Registry and the application deployed to Kubernetes using `1.2.0` docker image tag.
 
 Also this example demonstrates the typical Go project structure that includes:
 - [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.com/spf13/viper) setup and configuration
@@ -42,10 +41,11 @@ Also this example demonstrates the typical Go project structure that includes:
 - RESTful API documentation using [swag](https://github.com/swaggo/swag) and [gin-swagger](https://github.com/swaggo/gin-swagger)
 - gRPC status and health check using [grpc-health-probe](https://github.com/grpc-ecosystem/grpc-health-probe)
 - Customized logger with support of custom fields using [logrus](https://github.com/sirupsen/logrus)
+- Handling correlation id that is provided via [x-request-id](https://http.dev/x-request-id) header.
 - Prometheus metrics using [client_golang](https://github.com/prometheus/client_golang)
 - Simple unit tests and code coverage reports
-- Multi-stage Dockerfile
-- Deployment-ready Helm chart
+- [Multi-stage](https://docs.docker.com/build/building/multi-stage/) Dockerfile
+- Deployment-ready Helm chart with ingress, secrets, auto-scaling and service account for pulling docker images from private registry
 
 ## GitLab CI/CD setup
 
@@ -60,13 +60,13 @@ In order to have the deployment automation, the following environment variables 
 - `APPLICATION_DOMAIN` - The FQDN the application is deployed to.
 - `APPLICATION_KUBERNETES_NAMESPACE` - The Kubernetes namespace the application is deployed to.
 
-Refer to the [gitlab-ci.yml](./.gitlab-ci.yml) for the configured GitLab CI/CD steps and details.
+Refer to the [gitlab-ci.yml](./.gitlab-ci.yml) for the configured GitLab CI/CD steps.
 
-The deployment account that (`GITLAB_REGISTRY_USER_NAME` and `GITLAB_REGISTRY_USER_TOKEN`) could be crated via `Settings -> Repository -> Deploy tokens`. It should have the `read_registry` scope.
+The deployment account could be crated via `Settings -> Repository -> Deploy tokens` (`GITLAB_REGISTRY_USER_NAME` and `GITLAB_REGISTRY_USER_TOKEN`). The account should have the `read_registry` scope in order to pull a docker image from the GitLab Container registry.
 
 ## Installation
 
-This Readme refers to the two private resources that I use internally for my home infrastructure.  
+This readme refers to the two private registries that I use internally for my home infrastructure.  
 These two resources are not publicly available and require private GitLab authentication:  
 - GitLab Package registry ( https://git.lothric.net/api/v4/projects/examples%2Fgo%2Fgogin/packages/helm/stable )
 - GitLab Container registry ( https://registry.lothric.net )
